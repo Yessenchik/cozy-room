@@ -8,6 +8,8 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/Users/yessenzhumagali/Desktop/basic/opengl/cozy-room/src/Mesh.cpp" "CMakeFiles/CozyRoom.dir/src/Mesh.cpp.o" "gcc" "CMakeFiles/CozyRoom.dir/src/Mesh.cpp.o.d"
+  "/Users/yessenzhumagali/Desktop/basic/opengl/cozy-room/src/Shader.cpp" "CMakeFiles/CozyRoom.dir/src/Shader.cpp.o" "gcc" "CMakeFiles/CozyRoom.dir/src/Shader.cpp.o.d"
   "/Users/yessenzhumagali/Desktop/basic/opengl/cozy-room/src/main.cpp" "CMakeFiles/CozyRoom.dir/src/main.cpp.o" "gcc" "CMakeFiles/CozyRoom.dir/src/main.cpp.o.d"
   )
 
