@@ -120,6 +120,10 @@ int main() {
         shader.setMat4("uModel", model);
         shader.setMat4("uView", view);
         shader.setMat4("uProjection", projection);
+        shader.setMat3("uNormalMatrix", glm::mat3(glm::transpose(glm::inverse(model))));
+        shader.setVec3("uViewPos", camera.getPosition());
+        shader.setVec3("uLightDir", glm::vec3(0.6f, 1.0f, 0.4f));
+        shader.setVec3("uLightColor", glm::vec3(1.0f, 0.95f, 0.85f));
         shader.setVec3("uColor", glm::vec3(0.85f, 0.55f, 0.35f));
         cube->draw();
 
