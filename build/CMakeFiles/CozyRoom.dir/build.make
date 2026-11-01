@@ -72,10 +72,38 @@ include CMakeFiles/CozyRoom.dir/flags.make
 CMakeFiles/CozyRoom.dir/codegen:
 .PHONY : CMakeFiles/CozyRoom.dir/codegen
 
+CMakeFiles/CozyRoom.dir/src/Mesh.cpp.o: CMakeFiles/CozyRoom.dir/flags.make
+CMakeFiles/CozyRoom.dir/src/Mesh.cpp.o: /Users/yessenzhumagali/Desktop/basic/opengl/cozy-room/src/Mesh.cpp
+CMakeFiles/CozyRoom.dir/src/Mesh.cpp.o: CMakeFiles/CozyRoom.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/yessenzhumagali/Desktop/basic/opengl/cozy-room/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/CozyRoom.dir/src/Mesh.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/CozyRoom.dir/src/Mesh.cpp.o -MF CMakeFiles/CozyRoom.dir/src/Mesh.cpp.o.d -o CMakeFiles/CozyRoom.dir/src/Mesh.cpp.o -c /Users/yessenzhumagali/Desktop/basic/opengl/cozy-room/src/Mesh.cpp
+
+CMakeFiles/CozyRoom.dir/src/Mesh.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/CozyRoom.dir/src/Mesh.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/yessenzhumagali/Desktop/basic/opengl/cozy-room/src/Mesh.cpp > CMakeFiles/CozyRoom.dir/src/Mesh.cpp.i
+
+CMakeFiles/CozyRoom.dir/src/Mesh.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/CozyRoom.dir/src/Mesh.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/yessenzhumagali/Desktop/basic/opengl/cozy-room/src/Mesh.cpp -o CMakeFiles/CozyRoom.dir/src/Mesh.cpp.s
+
+CMakeFiles/CozyRoom.dir/src/Shader.cpp.o: CMakeFiles/CozyRoom.dir/flags.make
+CMakeFiles/CozyRoom.dir/src/Shader.cpp.o: /Users/yessenzhumagali/Desktop/basic/opengl/cozy-room/src/Shader.cpp
+CMakeFiles/CozyRoom.dir/src/Shader.cpp.o: CMakeFiles/CozyRoom.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/yessenzhumagali/Desktop/basic/opengl/cozy-room/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/CozyRoom.dir/src/Shader.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/CozyRoom.dir/src/Shader.cpp.o -MF CMakeFiles/CozyRoom.dir/src/Shader.cpp.o.d -o CMakeFiles/CozyRoom.dir/src/Shader.cpp.o -c /Users/yessenzhumagali/Desktop/basic/opengl/cozy-room/src/Shader.cpp
+
+CMakeFiles/CozyRoom.dir/src/Shader.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/CozyRoom.dir/src/Shader.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/yessenzhumagali/Desktop/basic/opengl/cozy-room/src/Shader.cpp > CMakeFiles/CozyRoom.dir/src/Shader.cpp.i
+
+CMakeFiles/CozyRoom.dir/src/Shader.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/CozyRoom.dir/src/Shader.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/yessenzhumagali/Desktop/basic/opengl/cozy-room/src/Shader.cpp -o CMakeFiles/CozyRoom.dir/src/Shader.cpp.s
+
 CMakeFiles/CozyRoom.dir/src/main.cpp.o: CMakeFiles/CozyRoom.dir/flags.make
 CMakeFiles/CozyRoom.dir/src/main.cpp.o: /Users/yessenzhumagali/Desktop/basic/opengl/cozy-room/src/main.cpp
 CMakeFiles/CozyRoom.dir/src/main.cpp.o: CMakeFiles/CozyRoom.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/yessenzhumagali/Desktop/basic/opengl/cozy-room/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/CozyRoom.dir/src/main.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/yessenzhumagali/Desktop/basic/opengl/cozy-room/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/CozyRoom.dir/src/main.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/CozyRoom.dir/src/main.cpp.o -MF CMakeFiles/CozyRoom.dir/src/main.cpp.o.d -o CMakeFiles/CozyRoom.dir/src/main.cpp.o -c /Users/yessenzhumagali/Desktop/basic/opengl/cozy-room/src/main.cpp
 
 CMakeFiles/CozyRoom.dir/src/main.cpp.i: cmake_force
@@ -88,18 +116,22 @@ CMakeFiles/CozyRoom.dir/src/main.cpp.s: cmake_force
 
 # Object files for target CozyRoom
 CozyRoom_OBJECTS = \
+"CMakeFiles/CozyRoom.dir/src/Mesh.cpp.o" \
+"CMakeFiles/CozyRoom.dir/src/Shader.cpp.o" \
 "CMakeFiles/CozyRoom.dir/src/main.cpp.o"
 
 # External object files for target CozyRoom
 CozyRoom_EXTERNAL_OBJECTS =
 
+CozyRoom: CMakeFiles/CozyRoom.dir/src/Mesh.cpp.o
+CozyRoom: CMakeFiles/CozyRoom.dir/src/Shader.cpp.o
 CozyRoom: CMakeFiles/CozyRoom.dir/src/main.cpp.o
 CozyRoom: CMakeFiles/CozyRoom.dir/build.make
 CozyRoom: _deps/glfw-build/src/libglfw3.a
 CozyRoom: _deps/glm-build/glm/libglm.a
 CozyRoom: libglad.a
 CozyRoom: CMakeFiles/CozyRoom.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/yessenzhumagali/Desktop/basic/opengl/cozy-room/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable CozyRoom"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/yessenzhumagali/Desktop/basic/opengl/cozy-room/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX executable CozyRoom"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/CozyRoom.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
