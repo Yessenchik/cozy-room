@@ -6,13 +6,13 @@
 #include <iostream>
 
 #include "Camera.h"
-#include "Mesh.h"
+#include "Room.h"
 #include "Shader.h"
 
 const int WINDOW_WIDTH = 1280;
 const int WINDOW_HEIGHT = 720;
 
-Camera camera(glm::vec3(0.0f), 5.0f);
+Camera camera(glm::vec3(0.0f, 1.2f, 0.0f), 9.0f);
 bool rightMouseDown = false;
 double lastMouseX = 0.0, lastMouseY = 0.0;
 
@@ -95,12 +95,11 @@ int main() {
 
     Shader shader(std::string(PROJECT_DIR) + "shaders/basic.vert",
                   std::string(PROJECT_DIR) + "shaders/basic.frag");
-    Mesh* cube = Mesh::createCube();
+    Room* room = new Room();
 
     glEnable(GL_DEPTH_TEST);
 
     float lastFrameTime = (float)glfwGetTime();
-    
     float fpsTimer = lastFrameTime;
     int frameCount = 0;
 
@@ -119,22 +118,18 @@ int main() {
 
         glm::mat4 view = camera.getViewMatrix();
         glm::mat4 projection = camera.getProjectionMatrix(aspect);
-        glm::mat4 model(1.0f);
 
         shader.use();
-        shader.setMat4("uModel", model);
         shader.setMat4("uView", view);
         shader.setMat4("uProjection", projection);
-        shader.setMat3("uNormalMatrix", glm::mat3(glm::transpose(glm::inverse(model))));
         shader.setVec3("uViewPos", camera.getPosition());
         shader.setVec3("uLightDir", glm::vec3(0.6f, 1.0f, 0.4f));
         shader.setVec3("uLightColor", glm::vec3(1.0f, 0.95f, 0.85f));
-        shader.setVec3("uColor", glm::vec3(0.85f, 0.55f, 0.35f));
-        cube->draw();
+        room->draw(shader);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
-        
+
         frameCount++;
         if (currentTime - fpsTimer >= 0.5f) {
             char title[64];
@@ -145,7 +140,7 @@ int main() {
         }
     }
 
-    delete cube;
+    delete room;
     glfwTerminate();
     return 0;
 }

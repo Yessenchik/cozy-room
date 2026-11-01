@@ -1,0 +1,51 @@
+#include "Room.h"
+#include <glm/gtc/matrix_transform.hpp>
+
+const glm::vec3 FLOOR_COLOR(0.62f, 0.42f, 0.26f);
+const glm::vec3 WALL_COLOR(0.56f, 0.70f, 0.90f);
+const glm::vec3 FRAME_COLOR(0.95f, 0.95f, 0.92f);
+
+Room::Room() {
+    cube = Mesh::createCube();
+    buildWalls();
+}
+
+Room::~Room() {
+    delete cube;
+}
+
+void Room::add(const std::string& name, glm::vec3 position, glm::vec3 size, glm::vec3 color) {
+    objects.push_back({name, position, size, color});
+}
+
+// Room is 6 x 3 x 6, floor at y = 0, centred on x and z.
+// Only the left and back walls exist so we can look inside.
+void Room::buildWalls() {
+    add("floor",     {0.0f, -0.05f, 0.0f},   {6.0f, 0.1f, 6.0f},  FLOOR_COLOR);
+    add("left wall", {-3.05f, 1.5f, 0.0f},   {0.1f, 3.0f, 6.0f},  WALL_COLOR);
+
+    // back wall is built from 4 pieces around the window hole
+    // hole: x from -0.5 to 1.5, y from 1.0 to 2.3
+    add("back wall left",   {-1.75f, 1.5f,  -3.05f}, {2.5f, 3.0f, 0.1f}, WALL_COLOR);
+    add("back wall right",  { 2.25f, 1.5f,  -3.05f}, {1.5f, 3.0f, 0.1f}, WALL_COLOR);
+    add("back wall bottom", { 0.5f,  0.5f,  -3.05f}, {2.0f, 1.0f, 0.1f}, WALL_COLOR);
+    add("back wall top",    { 0.5f,  2.65f, -3.05f}, {2.0f, 0.7f, 0.1f}, WALL_COLOR);
+
+    add("window sill",       {0.5f, 0.97f, -2.93f}, {2.2f, 0.06f, 0.3f},  FRAME_COLOR);
+    add("window frame top",  {0.5f, 2.28f, -3.0f},  {2.0f, 0.05f, 0.12f}, FRAME_COLOR);
+    add("window frame left", {-0.48f, 1.65f, -3.0f}, {0.05f, 1.3f, 0.12f}, FRAME_COLOR);
+    add("window frame right",{1.48f, 1.65f, -3.0f},  {0.05f, 1.3f, 0.12f}, FRAME_COLOR);
+    add("window frame mid",  {0.5f, 1.65f, -3.0f},  {0.05f, 1.3f, 0.12f}, FRAME_COLOR);
+}
+
+void Room::draw(const Shader& shader) const {
+    for (const RoomObject& obj : objects) {
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), obj.position);
+        model = glm::scale(model, obj.size);
+
+        shader.setMat4("uModel", model);
+        shader.setMat3("uNormalMatrix", glm::mat3(glm::transpose(glm::inverse(model))));
+        shader.setVec3("uColor", obj.color);
+        cube->draw();
+    }
+}

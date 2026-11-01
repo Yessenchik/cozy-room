@@ -4,7 +4,9 @@
 # SOURCES at CMakeLists.txt:28 (file)
 file(GLOB NEW_GLOB LIST_DIRECTORIES true "/Users/yessenzhumagali/Desktop/basic/opengl/cozy-room/src/*.cpp")
 set(OLD_GLOB
+  "/Users/yessenzhumagali/Desktop/basic/opengl/cozy-room/src/Camera.cpp"
   "/Users/yessenzhumagali/Desktop/basic/opengl/cozy-room/src/Mesh.cpp"
+  "/Users/yessenzhumagali/Desktop/basic/opengl/cozy-room/src/Room.cpp"
   "/Users/yessenzhumagali/Desktop/basic/opengl/cozy-room/src/Shader.cpp"
   "/Users/yessenzhumagali/Desktop/basic/opengl/cozy-room/src/main.cpp"
   )

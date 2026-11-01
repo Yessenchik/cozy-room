@@ -1,6 +1,10 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/CozyRoom.dir/src/Camera.cpp.o"
+  "CMakeFiles/CozyRoom.dir/src/Camera.cpp.o.d"
   "CMakeFiles/CozyRoom.dir/src/Mesh.cpp.o"
   "CMakeFiles/CozyRoom.dir/src/Mesh.cpp.o.d"
+  "CMakeFiles/CozyRoom.dir/src/Room.cpp.o"
+  "CMakeFiles/CozyRoom.dir/src/Room.cpp.o.d"
   "CMakeFiles/CozyRoom.dir/src/Shader.cpp.o"
   "CMakeFiles/CozyRoom.dir/src/Shader.cpp.o.d"
   "CMakeFiles/CozyRoom.dir/src/main.cpp.o"

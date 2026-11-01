@@ -264,6 +264,30 @@ external/glad/src/glad.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/glad.dir/build.make CMakeFiles/glad.dir/external/glad/src/glad.c.s
 .PHONY : external/glad/src/glad.c.s
 
+src/Camera.o: src/Camera.cpp.o
+.PHONY : src/Camera.o
+
+# target to build an object file
+src/Camera.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/CozyRoom.dir/build.make CMakeFiles/CozyRoom.dir/src/Camera.cpp.o
+.PHONY : src/Camera.cpp.o
+
+src/Camera.i: src/Camera.cpp.i
+.PHONY : src/Camera.i
+
+# target to preprocess a source file
+src/Camera.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/CozyRoom.dir/build.make CMakeFiles/CozyRoom.dir/src/Camera.cpp.i
+.PHONY : src/Camera.cpp.i
+
+src/Camera.s: src/Camera.cpp.s
+.PHONY : src/Camera.s
+
+# target to generate assembly for a file
+src/Camera.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/CozyRoom.dir/build.make CMakeFiles/CozyRoom.dir/src/Camera.cpp.s
+.PHONY : src/Camera.cpp.s
+
 src/Mesh.o: src/Mesh.cpp.o
 .PHONY : src/Mesh.o
 
@@ -287,6 +311,30 @@ src/Mesh.s: src/Mesh.cpp.s
 src/Mesh.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/CozyRoom.dir/build.make CMakeFiles/CozyRoom.dir/src/Mesh.cpp.s
 .PHONY : src/Mesh.cpp.s
+
+src/Room.o: src/Room.cpp.o
+.PHONY : src/Room.o
+
+# target to build an object file
+src/Room.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/CozyRoom.dir/build.make CMakeFiles/CozyRoom.dir/src/Room.cpp.o
+.PHONY : src/Room.cpp.o
+
+src/Room.i: src/Room.cpp.i
+.PHONY : src/Room.i
+
+# target to preprocess a source file
+src/Room.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/CozyRoom.dir/build.make CMakeFiles/CozyRoom.dir/src/Room.cpp.i
+.PHONY : src/Room.cpp.i
+
+src/Room.s: src/Room.cpp.s
+.PHONY : src/Room.s
+
+# target to generate assembly for a file
+src/Room.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/CozyRoom.dir/build.make CMakeFiles/CozyRoom.dir/src/Room.cpp.s
+.PHONY : src/Room.cpp.s
 
 src/Shader.o: src/Shader.cpp.o
 .PHONY : src/Shader.o
@@ -357,9 +405,15 @@ help:
 	@echo "... external/glad/src/glad.o"
 	@echo "... external/glad/src/glad.i"
 	@echo "... external/glad/src/glad.s"
+	@echo "... src/Camera.o"
+	@echo "... src/Camera.i"
+	@echo "... src/Camera.s"
 	@echo "... src/Mesh.o"
 	@echo "... src/Mesh.i"
 	@echo "... src/Mesh.s"
+	@echo "... src/Room.o"
+	@echo "... src/Room.i"
+	@echo "... src/Room.s"
 	@echo "... src/Shader.o"
 	@echo "... src/Shader.i"
 	@echo "... src/Shader.s"
