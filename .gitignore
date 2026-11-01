@@ -1,0 +1,10 @@
+   build/
+   build-*/
+   cmake-build-*/
+   .vscode/
+   .idea/
+   .vs/
+   *.xcodeproj/
+   xcuserdata/
+   .DS_Store
+   Thumbs.db

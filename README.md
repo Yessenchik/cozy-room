@@ -61,4 +61,5 @@ The FPS counter is shown in the window title.
 
 ## AI Use
 
-To be completed: which AI tools were used, for what, and what we changed.
+We used Claude (Anthropic) as an assistant in this project.
+
