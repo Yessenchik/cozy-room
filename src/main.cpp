@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <cstdio>
 #include <iostream>
 
 #include "Camera.h"
@@ -74,6 +75,7 @@ int main() {
         return 1;
     }
     glfwMakeContextCurrent(window);
+    glfwSwapInterval(0);   // vsync off so the FPS counter shows real performance
     glfwSetFramebufferSizeCallback(window, onResize);
     glfwSetMouseButtonCallback(window, onMouseButton);
     glfwSetCursorPosCallback(window, onMouseMove);
@@ -98,6 +100,9 @@ int main() {
     glEnable(GL_DEPTH_TEST);
 
     float lastFrameTime = (float)glfwGetTime();
+    
+    float fpsTimer = lastFrameTime;
+    int frameCount = 0;
 
     while (!glfwWindowShouldClose(window)) {
         float currentTime = (float)glfwGetTime();
@@ -129,6 +134,15 @@ int main() {
 
         glfwSwapBuffers(window);
         glfwPollEvents();
+        
+        frameCount++;
+        if (currentTime - fpsTimer >= 0.5f) {
+            char title[64];
+            std::snprintf(title, sizeof(title), "Cozy Room | %.0f FPS", frameCount / (currentTime - fpsTimer));
+            glfwSetWindowTitle(window, title);
+            frameCount = 0;
+            fpsTimer = currentTime;
+        }
     }
 
     delete cube;
