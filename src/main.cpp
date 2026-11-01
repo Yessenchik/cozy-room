@@ -4,14 +4,55 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 
+#include "Camera.h"
 #include "Mesh.h"
 #include "Shader.h"
 
 const int WINDOW_WIDTH = 1280;
 const int WINDOW_HEIGHT = 720;
 
+Camera camera(glm::vec3(0.0f), 5.0f);
+bool rightMouseDown = false;
+double lastMouseX = 0.0, lastMouseY = 0.0;
+
 void onResize(GLFWwindow*, int width, int height) {
     glViewport(0, 0, width, height);
+}
+
+void onMouseButton(GLFWwindow* window, int button, int action, int) {
+    if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+        rightMouseDown = (action == GLFW_PRESS);
+        glfwGetCursorPos(window, &lastMouseX, &lastMouseY);
+    }
+}
+
+void onMouseMove(GLFWwindow*, double x, double y) {
+    if (rightMouseDown) {
+        float sensitivity = 0.2f;
+        camera.rotate((float)(x - lastMouseX) * sensitivity, (float)(y - lastMouseY) * sensitivity);
+    }
+    lastMouseX = x;
+    lastMouseY = y;
+}
+
+void onScroll(GLFWwindow*, double, double yOffset) {
+    camera.zoom((float)yOffset * 0.5f);
+}
+
+void processKeyboard(GLFWwindow* window, float deltaTime) {
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+
+    // speeds are per second, so movement is the same at any FPS
+    float rotateSpeed = 60.0f * deltaTime;
+    float zoomSpeed = 5.0f * deltaTime;
+
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) camera.rotate(rotateSpeed, 0.0f);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) camera.rotate(-rotateSpeed, 0.0f);
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) camera.rotate(0.0f, -rotateSpeed);
+    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) camera.rotate(0.0f, rotateSpeed);
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) camera.zoom(zoomSpeed);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) camera.zoom(-zoomSpeed);
 }
 
 int main() {
@@ -34,6 +75,9 @@ int main() {
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, onResize);
+    glfwSetMouseButtonCallback(window, onMouseButton);
+    glfwSetCursorPosCallback(window, onMouseMove);
+    glfwSetScrollCallback(window, onScroll);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cerr << "Failed to load OpenGL with GLAD\n";
@@ -53,9 +97,14 @@ int main() {
 
     glEnable(GL_DEPTH_TEST);
 
+    float lastFrameTime = (float)glfwGetTime();
+
     while (!glfwWindowShouldClose(window)) {
-        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-            glfwSetWindowShouldClose(window, true);
+        float currentTime = (float)glfwGetTime();
+        float deltaTime = currentTime - lastFrameTime;
+        lastFrameTime = currentTime;
+
+        processKeyboard(window, deltaTime);
 
         glClearColor(0.55f, 0.75f, 0.95f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -63,10 +112,9 @@ int main() {
         glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
         float aspect = fbHeight > 0 ? (float)fbWidth / fbHeight : 1.0f;
 
-        // TODO: replace with orbit camera
-        glm::mat4 view = glm::lookAt(glm::vec3(2.5f, 2.0f, 3.0f), glm::vec3(0.0f), glm::vec3(0, 1, 0));
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
-        glm::mat4 model = glm::rotate(glm::mat4(1.0f), (float)glfwGetTime() * 0.5f, glm::vec3(0, 1, 0));
+        glm::mat4 view = camera.getViewMatrix();
+        glm::mat4 projection = camera.getProjectionMatrix(aspect);
+        glm::mat4 model(1.0f);
 
         shader.use();
         shader.setMat4("uModel", model);
