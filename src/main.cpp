@@ -125,6 +125,8 @@ int main() {
         shader.setVec3("uViewPos", camera.getPosition());
         shader.setVec3("uLightDir", glm::vec3(0.6f, 1.0f, 0.4f));
         shader.setVec3("uLightColor", glm::vec3(1.0f, 0.95f, 0.85f));
+        shader.setVec3("uLampPos", glm::vec3(1.98f, 1.43f, 1.35f));
+        shader.setVec3("uLampColor", glm::vec3(1.0f, 0.72f, 0.38f));
         room->draw(shader);
 
         glfwSwapBuffers(window);
