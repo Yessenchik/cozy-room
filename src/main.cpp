@@ -16,6 +16,9 @@ Camera camera(glm::vec3(0.0f, 1.2f, 0.0f), 9.0f);
 bool rightMouseDown = false;
 double lastMouseX = 0.0, lastMouseY = 0.0;
 
+bool lampOn = true;
+bool lWasPressed = false;
+
 void onResize(GLFWwindow*, int width, int height) {
     glViewport(0, 0, width, height);
 }
@@ -30,7 +33,8 @@ void onMouseButton(GLFWwindow* window, int button, int action, int) {
 void onMouseMove(GLFWwindow*, double x, double y) {
     if (rightMouseDown) {
         float sensitivity = 0.2f;
-        camera.rotate((float)(x - lastMouseX) * sensitivity, (float)(y - lastMouseY) * sensitivity);
+        camera.rotate((float)(x - lastMouseX) * sensitivity,
+            (float)(y - lastMouseY) * sensitivity);
     }
     lastMouseX = x;
     lastMouseY = y;
@@ -54,6 +58,14 @@ void processKeyboard(GLFWwindow* window, float deltaTime) {
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) camera.rotate(0.0f, rotateSpeed);
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) camera.zoom(zoomSpeed);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) camera.zoom(-zoomSpeed);
+
+    bool lIsPressed = glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS;
+
+    if (lIsPressed && !lWasPressed) {
+        lampOn = !lampOn;
+    }
+
+    lWasPressed = lIsPressed;
 }
 
 int main() {
@@ -61,21 +73,31 @@ int main() {
         std::cerr << "Failed to initialise GLFW\n";
         return 1;
     }
+
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Cozy Room", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(
+        WINDOW_WIDTH,
+        WINDOW_HEIGHT,
+        "Cozy Room",
+        nullptr,
+        nullptr
+    );
+
     if (!window) {
         std::cerr << "Failed to create window\n";
         glfwTerminate();
         return 1;
     }
+
     glfwMakeContextCurrent(window);
-    glfwSwapInterval(1);   
+    glfwSwapInterval(1);
     glfwSetFramebufferSizeCallback(window, onResize);
     glfwSetMouseButtonCallback(window, onMouseButton);
     glfwSetCursorPosCallback(window, onMouseMove);
@@ -93,8 +115,11 @@ int main() {
 
     std::cout << "OpenGL " << glGetString(GL_VERSION) << "\n";
 
-    Shader shader(std::string(PROJECT_DIR) + "shaders/basic.vert",
-        std::string(PROJECT_DIR) + "shaders/basic.frag");
+    Shader shader(
+        std::string(PROJECT_DIR) + "shaders/basic.vert",
+        std::string(PROJECT_DIR) + "shaders/basic.frag"
+    );
+
     Room* room = new Room();
 
     glEnable(GL_DEPTH_TEST);
@@ -125,8 +150,18 @@ int main() {
         shader.setVec3("uViewPos", camera.getPosition());
         shader.setVec3("uLightDir", glm::vec3(0.6f, 1.0f, 0.4f));
         shader.setVec3("uLightColor", glm::vec3(1.0f, 0.95f, 0.85f));
-        shader.setVec3("uLampPos", glm::vec3(1.98f, 1.43f, 1.35f));
-        shader.setVec3("uLampColor", glm::vec3(1.0f, 0.72f, 0.38f));
+
+        shader.setVec3(
+            "uLampPos",
+            glm::vec3(1.98f, 1.43f, 1.35f)
+        );
+
+        shader.setVec3(
+            "uLampColor",
+            lampOn ? glm::vec3(1.0f, 0.72f, 0.38f)
+            : glm::vec3(0.0f)
+        );
+
         room->draw(shader);
 
         glfwSwapBuffers(window);

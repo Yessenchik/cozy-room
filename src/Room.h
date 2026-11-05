@@ -18,7 +18,13 @@ public:
     Room();
     ~Room();
 
-    void add(const std::string& name, glm::vec3 position, glm::vec3 size, glm::vec3 color);
+    void add(
+        const std::string& name,
+        glm::vec3 position,
+        glm::vec3 size,
+        glm::vec3 color
+    );
+
     void draw(const Shader& shader) const;
 
 private:
