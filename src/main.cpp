@@ -75,7 +75,7 @@ int main() {
         return 1;
     }
     glfwMakeContextCurrent(window);
-    glfwSwapInterval(0);   // vsync off so the FPS counter shows real performance
+    glfwSwapInterval(1);   
     glfwSetFramebufferSizeCallback(window, onResize);
     glfwSetMouseButtonCallback(window, onMouseButton);
     glfwSetCursorPosCallback(window, onMouseMove);
@@ -94,18 +94,18 @@ int main() {
     std::cout << "OpenGL " << glGetString(GL_VERSION) << "\n";
 
     Shader shader(std::string(PROJECT_DIR) + "shaders/basic.vert",
-                  std::string(PROJECT_DIR) + "shaders/basic.frag");
+        std::string(PROJECT_DIR) + "shaders/basic.frag");
     Room* room = new Room();
 
     glEnable(GL_DEPTH_TEST);
 
-    float lastFrameTime = (float)glfwGetTime();
-    float fpsTimer = lastFrameTime;
+    double lastFrameTime = glfwGetTime();
+    double fpsTimer = lastFrameTime;
     int frameCount = 0;
 
     while (!glfwWindowShouldClose(window)) {
-        float currentTime = (float)glfwGetTime();
-        float deltaTime = currentTime - lastFrameTime;
+        double currentTime = glfwGetTime();
+        float deltaTime = static_cast<float>(currentTime - lastFrameTime);
         lastFrameTime = currentTime;
 
         processKeyboard(window, deltaTime);
@@ -133,12 +133,19 @@ int main() {
         glfwPollEvents();
 
         frameCount++;
-        if (currentTime - fpsTimer >= 0.5f) {
+
+        double fpsNow = glfwGetTime();
+        double elapsed = fpsNow - fpsTimer;
+
+        if (elapsed >= 1.0) {
+            double fps = frameCount / elapsed;
+
             char title[64];
-            std::snprintf(title, sizeof(title), "Cozy Room | %.0f FPS", frameCount / (currentTime - fpsTimer));
+            std::snprintf(title, sizeof(title), "Cozy Room | %.1f FPS", fps);
             glfwSetWindowTitle(window, title);
+
             frameCount = 0;
-            fpsTimer = currentTime;
+            fpsTimer = fpsNow;
         }
     }
 
