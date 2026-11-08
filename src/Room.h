@@ -2,14 +2,13 @@
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
-
 #include "Mesh.h"
 #include "Shader.h"
 
 struct RoomObject {
     std::string name;
-    glm::vec3 position;   // centre of the box
-    glm::vec3 size;       // width, height, depth
+    glm::vec3 position;   
+    glm::vec3 size;       
     glm::vec3 color;
 };
 
@@ -29,6 +28,7 @@ public:
 
 private:
     void buildWalls();
+    void buildAidanaObjects(); 
 
     std::vector<RoomObject> objects;
     Mesh* cube;
