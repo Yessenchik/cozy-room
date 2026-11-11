@@ -27,7 +27,8 @@ target_include_directories(glad PUBLIC external/glad/include)
 
 file(GLOB SOURCES CONFIGURE_DEPENDS src/*.cpp)
 add_executable(CozyRoom ${SOURCES})
-target_include_directories(CozyRoom PRIVATE src)
+# stb_easy_font (one header, public domain) draws the on-screen text.
+target_include_directories(CozyRoom PRIVATE src external/stb)
 target_link_libraries(CozyRoom PRIVATE glfw glm::glm glad)
 
 # Path to the project folder, so the program finds shaders/ and textures/
