@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include "Camera.h"
+#include "DayNight.h"
 #include "Room.h"
 #include "Shader.h"
 
@@ -16,7 +17,13 @@ Camera camera(glm::vec3(0.0f, 1.2f, 0.0f), 9.0f);
 bool rightMouseDown = false;
 double lastMouseX = 0.0, lastMouseY = 0.0;
 
-bool lampOn = true;
+DayNight dayNight(8.0f);   // the scene starts at 08:00
+
+// the lamp switches on by itself in the evening and off in the morning,
+// L still toggles it by hand at any time
+const float LAMP_ON_HOUR = 19.0f;
+const float LAMP_OFF_HOUR = 7.0f;
+bool lampOn = false;
 bool lWasPressed = false;
 
 void onResize(GLFWwindow*, int width, int height) {
@@ -124,6 +131,8 @@ int main() {
 
     glEnable(GL_DEPTH_TEST);
 
+    lampOn = !dayNight.getLighting().sunUp;
+
     double lastFrameTime = glfwGetTime();
     double fpsTimer = lastFrameTime;
     int frameCount = 0;
@@ -135,7 +144,14 @@ int main() {
 
         processKeyboard(window, deltaTime);
 
-        glClearColor(0.55f, 0.75f, 0.95f, 1.0f);
+        float prevHour = dayNight.getHour();
+        dayNight.update(deltaTime);
+        if (DayNight::passed(prevHour, dayNight.getHour(), LAMP_ON_HOUR)) lampOn = true;
+        if (DayNight::passed(prevHour, dayNight.getHour(), LAMP_OFF_HOUR)) lampOn = false;
+
+        Lighting light = dayNight.getLighting();
+
+        glClearColor(light.sky.r, light.sky.g, light.sky.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
@@ -148,8 +164,9 @@ int main() {
         shader.setMat4("uView", view);
         shader.setMat4("uProjection", projection);
         shader.setVec3("uViewPos", camera.getPosition());
-        shader.setVec3("uLightDir", glm::vec3(0.6f, 1.0f, 0.4f));
-        shader.setVec3("uLightColor", glm::vec3(1.0f, 0.95f, 0.85f));
+        shader.setVec3("uLightDir", light.toLight);
+        shader.setVec3("uLightColor", light.lightColor);
+        shader.setVec3("uAmbient", light.ambient);
 
         shader.setVec3(
             "uLampPos",

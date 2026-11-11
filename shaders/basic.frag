@@ -6,8 +6,9 @@ out vec4 FragColor;
 
 uniform vec3 uColor;
 uniform vec3 uViewPos;
-uniform vec3 uLightDir;     // direction towards the sun
-uniform vec3 uLightColor;
+uniform vec3 uLightDir;     // direction towards the sun (or the moon at night)
+uniform vec3 uLightColor;   // already includes the intensity for this time of day
+uniform vec3 uAmbient;      // sky fill light, changes with the time of day
 uniform vec3 uLampPos;
 uniform vec3 uLampColor;
 
@@ -18,7 +19,7 @@ void main() {
     vec3 L = normalize(uLightDir);
     vec3 H = normalize(L + V);
 
-    vec3 ambient = 0.25 * uColor;
+    vec3 ambient = uAmbient * uColor;
 
     float diff = max(dot(N, L), 0.0);
     vec3 diffuse = diff * uColor * uLightColor;
