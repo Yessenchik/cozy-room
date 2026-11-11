@@ -7,8 +7,10 @@
 
 #include "Camera.h"
 #include "DayNight.h"
+#include "Hud.h"
 #include "Room.h"
 #include "Shader.h"
+#include "TimeControls.h"
 
 const int WINDOW_WIDTH = 1280;
 const int WINDOW_HEIGHT = 720;
@@ -18,6 +20,7 @@ bool rightMouseDown = false;
 double lastMouseX = 0.0, lastMouseY = 0.0;
 
 DayNight dayNight(8.0f);   // the scene starts at 08:00
+TimeControls timeControls(dayNight);
 
 // the lamp switches on by itself in the evening and off in the morning,
 // L still toggles it by hand at any time
@@ -26,18 +29,32 @@ const float LAMP_OFF_HOUR = 7.0f;
 bool lampOn = false;
 bool lWasPressed = false;
 
+bool lampShouldBeOn(float hour) {
+    return hour >= LAMP_ON_HOUR || hour < LAMP_OFF_HOUR;
+}
+
 void onResize(GLFWwindow*, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
 void onMouseButton(GLFWwindow* window, int button, int action, int) {
+    double x, y;
+    int width, height;
+    glfwGetCursorPos(window, &x, &y);
+    glfwGetWindowSize(window, &width, &height);
+    timeControls.onMouseButton(button, action, x, y, width, height);
+
     if (button == GLFW_MOUSE_BUTTON_RIGHT) {
         rightMouseDown = (action == GLFW_PRESS);
         glfwGetCursorPos(window, &lastMouseX, &lastMouseY);
     }
 }
 
-void onMouseMove(GLFWwindow*, double x, double y) {
+void onMouseMove(GLFWwindow* window, double x, double y) {
+    int width, height;
+    glfwGetWindowSize(window, &width, &height);
+    timeControls.onMouseMove(x, y, width, height);
+
     if (rightMouseDown) {
         float sensitivity = 0.2f;
         camera.rotate((float)(x - lastMouseX) * sensitivity,
@@ -49,6 +66,10 @@ void onMouseMove(GLFWwindow*, double x, double y) {
 
 void onScroll(GLFWwindow*, double, double yOffset) {
     camera.zoom((float)yOffset * 0.5f);
+}
+
+void onKey(GLFWwindow*, int key, int, int action, int) {
+    timeControls.onKey(key, action);
 }
 
 void processKeyboard(GLFWwindow* window, float deltaTime) {
@@ -109,6 +130,7 @@ int main() {
     glfwSetMouseButtonCallback(window, onMouseButton);
     glfwSetCursorPosCallback(window, onMouseMove);
     glfwSetScrollCallback(window, onScroll);
+    glfwSetKeyCallback(window, onKey);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cerr << "Failed to load OpenGL with GLAD\n";
@@ -129,13 +151,19 @@ int main() {
 
     Room* room = new Room();
 
+    Hud hud(
+        std::string(PROJECT_DIR) + "shaders/hud.vert",
+        std::string(PROJECT_DIR) + "shaders/hud.frag"
+    );
+
     glEnable(GL_DEPTH_TEST);
 
-    lampOn = !dayNight.getLighting().sunUp;
+    lampOn = lampShouldBeOn(dayNight.getHour());
 
     double lastFrameTime = glfwGetTime();
     double fpsTimer = lastFrameTime;
     int frameCount = 0;
+    float fps = 0.0f;
 
     while (!glfwWindowShouldClose(window)) {
         double currentTime = glfwGetTime();
@@ -145,9 +173,14 @@ int main() {
         processKeyboard(window, deltaTime);
 
         float prevHour = dayNight.getHour();
+        timeControls.update(window, deltaTime);
         dayNight.update(deltaTime);
-        if (DayNight::passed(prevHour, dayNight.getHour(), LAMP_ON_HOUR)) lampOn = true;
-        if (DayNight::passed(prevHour, dayNight.getHour(), LAMP_OFF_HOUR)) lampOn = false;
+        if (timeControls.takeJump()) {
+            lampOn = lampShouldBeOn(dayNight.getHour());
+        } else {
+            if (DayNight::passed(prevHour, dayNight.getHour(), LAMP_ON_HOUR)) lampOn = true;
+            if (DayNight::passed(prevHour, dayNight.getHour(), LAMP_OFF_HOUR)) lampOn = false;
+        }
 
         Lighting light = dayNight.getLighting();
 
@@ -181,6 +214,12 @@ int main() {
 
         room->draw(shader);
 
+        int winWidth, winHeight;
+        glfwGetWindowSize(window, &winWidth, &winHeight);
+        hud.begin(winWidth, winHeight);
+        timeControls.draw(hud, winWidth, winHeight, fps, lampOn);
+        hud.end();
+
         glfwSwapBuffers(window);
         glfwPollEvents();
 
@@ -190,7 +229,7 @@ int main() {
         double elapsed = fpsNow - fpsTimer;
 
         if (elapsed >= 1.0) {
-            double fps = frameCount / elapsed;
+            fps = (float)(frameCount / elapsed);
 
             char title[64];
             std::snprintf(title, sizeof(title), "Cozy Room | %.1f FPS", fps);
