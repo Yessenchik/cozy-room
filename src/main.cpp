@@ -8,8 +8,10 @@
 #include "Camera.h"
 #include "DayNight.h"
 #include "Hud.h"
+#include "Mesh.h"
 #include "Room.h"
 #include "Shader.h"
+#include "ShadowMap.h"
 #include "TimeControls.h"
 
 const int WINDOW_WIDTH = 1280;
@@ -28,6 +30,24 @@ const float LAMP_ON_HOUR = 19.0f;
 const float LAMP_OFF_HOUR = 7.0f;
 bool lampOn = false;
 bool lWasPressed = false;
+
+// The room is a cut-away: no ceiling and no right wall, so the camera can look in.
+// For the sun these parts still exist: they are drawn only into the shadow map,
+// which makes the sunlight come into the room only through the window.
+struct Occluder { glm::vec3 position, size; };
+const Occluder SHADOW_ONLY_OCCLUDERS[] = {
+    {{0.0f, 3.05f, 0.0f}, {6.2f, 0.1f, 6.2f}},   // ceiling
+    {{3.05f, 1.5f, 0.0f}, {0.1f, 3.0f, 6.0f}},   // right wall
+};
+
+void drawShadowOnlyOccluders(const Shader& depthShader, const Mesh& cube) {
+    for (const Occluder& o : SHADOW_ONLY_OCCLUDERS) {
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), o.position);
+        model = glm::scale(model, o.size);
+        depthShader.setMat4("uModel", model);
+        cube.draw();
+    }
+}
 
 bool lampShouldBeOn(float hour) {
     return hour >= LAMP_ON_HOUR || hour < LAMP_OFF_HOUR;
@@ -151,6 +171,15 @@ int main() {
 
     Room* room = new Room();
 
+    // shadow mapping for the sun / moon
+    Shader depthShader(
+        std::string(PROJECT_DIR) + "shaders/shadow_depth.vert",
+        std::string(PROJECT_DIR) + "shaders/shadow_depth.frag"
+    );
+    ShadowMap shadowMap(2048);
+    Mesh* occluderCube = Mesh::createCube();
+    const int SHADOW_TEXTURE_UNIT = 1;   // unit 0 is left free for colour textures
+
     Hud hud(
         std::string(PROJECT_DIR) + "shaders/hud.vert",
         std::string(PROJECT_DIR) + "shaders/hud.frag"
@@ -184,10 +213,20 @@ int main() {
 
         Lighting light = dayNight.getLighting();
 
+        glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
+
+        // pass 1: depth of the scene as seen from the sun
+        shadowMap.begin(light.toLight);
+        depthShader.use();
+        depthShader.setMat4("uLightSpace", shadowMap.getLightSpaceMatrix());
+        room->draw(depthShader);
+        drawShadowOnlyOccluders(depthShader, *occluderCube);
+        shadowMap.end(fbWidth, fbHeight);
+
+        // pass 2: the normal picture
         glClearColor(light.sky.r, light.sky.g, light.sky.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
         float aspect = fbHeight > 0 ? (float)fbWidth / fbHeight : 1.0f;
 
         glm::mat4 view = camera.getViewMatrix();
@@ -200,6 +239,9 @@ int main() {
         shader.setVec3("uLightDir", light.toLight);
         shader.setVec3("uLightColor", light.lightColor);
         shader.setVec3("uAmbient", light.ambient);
+        shader.setMat4("uLightSpace", shadowMap.getLightSpaceMatrix());
+        shader.setInt("uShadowMap", SHADOW_TEXTURE_UNIT);
+        shadowMap.bindTexture(SHADOW_TEXTURE_UNIT);
 
         shader.setVec3(
             "uLampPos",
@@ -240,6 +282,7 @@ int main() {
         }
     }
 
+    delete occluderCube;
     delete room;
     glfwTerminate();
     return 0;

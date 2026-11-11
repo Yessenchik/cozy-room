@@ -6,13 +6,16 @@ uniform mat4 uModel;
 uniform mat4 uView;
 uniform mat4 uProjection;
 uniform mat3 uNormalMatrix;
+uniform mat4 uLightSpace;   // for shadow mapping
 
 out vec3 vWorldPos;
 out vec3 vNormal;
+out vec4 vLightSpacePos;
 
 void main() {
     vec4 worldPos = uModel * vec4(aPosition, 1.0);
     vWorldPos = worldPos.xyz;
     vNormal = uNormalMatrix * aNormal;
+    vLightSpacePos = uLightSpace * worldPos;
     gl_Position = uProjection * uView * worldPos;
 }
