@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <iostream>
 
+#include "Benchmark.h"
 #include "Camera.h"
 #include "DayNight.h"
 #include "Hud.h"
@@ -23,6 +24,8 @@ double lastMouseX = 0.0, lastMouseY = 0.0;
 
 DayNight dayNight(8.0f);   // the scene starts at 08:00
 TimeControls timeControls(dayNight);
+Benchmark benchmark;
+bool vsyncOn = true;
 
 // the lamp switches on by itself in the evening and off in the morning,
 // L still toggles it by hand at any time
@@ -88,8 +91,17 @@ void onScroll(GLFWwindow*, double, double yOffset) {
     camera.zoom((float)yOffset * 0.5f);
 }
 
-void onKey(GLFWwindow*, int key, int, int action, int) {
+void onKey(GLFWwindow* window, int key, int, int action, int) {
     timeControls.onKey(key, action);
+
+    if (action != GLFW_PRESS)
+        return;
+    if (key == GLFW_KEY_B)
+        benchmark.start(window, dayNight);
+    if (key == GLFW_KEY_V && !benchmark.isRunning()) {
+        vsyncOn = !vsyncOn;
+        glfwSwapInterval(vsyncOn ? 1 : 0);
+    }
 }
 
 void processKeyboard(GLFWwindow* window, float deltaTime) {
@@ -201,10 +213,16 @@ int main() {
 
         processKeyboard(window, deltaTime);
 
+        bool benchmarkWasRunning = benchmark.isRunning();
+        benchmark.update(window, deltaTime, dayNight, camera);
+        bool benchmarkJustEnded = benchmarkWasRunning && !benchmark.isRunning();
+        if (benchmarkJustEnded)
+            glfwSwapInterval(vsyncOn ? 1 : 0);
+
         float prevHour = dayNight.getHour();
         timeControls.update(window, deltaTime);
         dayNight.update(deltaTime);
-        if (timeControls.takeJump()) {
+        if (timeControls.takeJump() || benchmarkJustEnded) {
             lampOn = lampShouldBeOn(dayNight.getHour());
         } else {
             if (DayNight::passed(prevHour, dayNight.getHour(), LAMP_ON_HOUR)) lampOn = true;
@@ -260,6 +278,14 @@ int main() {
         glfwGetWindowSize(window, &winWidth, &winHeight);
         hud.begin(winWidth, winHeight);
         timeControls.draw(hud, winWidth, winHeight, fps, lampOn);
+
+        std::string benchText = benchmark.statusText();
+        if (!benchText.empty()) {
+            float w = Hud::textWidth(benchText, 2.0f) + 24.0f;
+            float x = (winWidth - w) / 2.0f;
+            hud.rect(x, winHeight - 120.0f, w, 36.0f, glm::vec4(0.05f, 0.05f, 0.08f, 0.75f));
+            hud.textWithShadow(x + 12.0f, winHeight - 108.0f, benchText, 2.0f, glm::vec4(1.0f, 0.8f, 0.45f, 1.0f));
+        }
         hud.end();
 
         glfwSwapBuffers(window);

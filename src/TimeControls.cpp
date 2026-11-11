@@ -198,6 +198,8 @@ void TimeControls::draw(Hud& hud, int windowWidth, int windowHeight, float fps, 
             {"", ""},
             {"SCENE", ""},
             {"L", "desk lamp on / off"},
+            {"B", "FPS benchmark (20 s)"},
+            {"V", "vsync on / off"},
             {"H", "show / hide this help"},
             {"Esc", "quit"},
         };

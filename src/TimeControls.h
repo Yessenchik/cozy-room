@@ -12,6 +12,7 @@ struct GLFWwindow;
 //   1 2 3 4      jump to morning / noon / sunset / night
 //   T            time-lapse from morning to night
 //   H            show / hide help
+// (B - benchmark and V - vsync are handled in main.cpp)
 //   Left mouse   drag the time slider at the bottom of the screen
 class TimeControls {
 public:
