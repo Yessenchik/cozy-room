@@ -135,34 +135,6 @@ rectangles and text on top of the scene with alpha blending. Letters come from
 stb_easy_font, which builds every character from small quads, so no font texture is needed.
 The time slider is painted with the sky colour of every hour.
 
-## Project structure
-
-```
-src/
-  main.cpp           window, input, render loop
-  Camera.*           orbit camera
-  Shader.*           loads and compiles GLSL programs
-  Mesh.*             VAO/VBO/EBO, cube mesh with normals and UVs
-  Texture.*          loads an image with stb_image, mipmaps
-  Room.*             room and furniture
-  DayNight.*         time of day -> sun/moon direction and colours
-  ShadowMap.*        depth framebuffer for the sun
-  PointShadowMap.*   depth cube map for the desk lamp
-  Hud.*              2D overlay: rectangles and text
-  TimeControls.*     time keys, time slider, help panel
-  Benchmark.*        FPS benchmark (key B)
-shaders/
-  basic.vert/.frag   Blinn-Phong + sun shadows + desk lamp
-  shadow_depth.*     depth pass for the shadow map
-  point_shadow.*     distance pass for the lamp's cube map
-  hud.vert/.frag     2D overlay
-external/
-  glad/              OpenGL loader
-  stb/               stb_easy_font, stb_image
-textures/            floor, wall, wood grain, rug (PNG)
-tools/
-  make_textures.py   generates the textures (Python, numpy + Pillow)
-```
 
 ## Performance
 
@@ -177,23 +149,12 @@ table row to the console.
 The software-rendering row is the worst case (the CPU does all the GPU work).
 Rows for the team's laptops are added after running the benchmark on them.
 
-## Screenshots
-
-| | |
-|---|---|
-| ![Sunset](docs/screenshots/12-sunset-warm-light.png) | ![HUD and help](docs/screenshots/14-hud-and-help.png) |
-| ![Textured room in the morning](docs/screenshots/15-textured-room.png) | ![Wood floor and rug](docs/screenshots/16-wood-floor-and-rug.png) |
-| ![Night: desk lamp with shadows](docs/screenshots/17-night-lamp-shadows.png) | |
 
 Earlier progress screenshots are in `docs/screenshots/`.
 
 ## AI Use
 
-We used Claude (Anthropic) as an assistant in this project.
-For the day/night cycle, time controls, HUD, shadow mapping and benchmark, Claude helped
-write and review the code. For the textures (Texture class, UVs, texture shaders and the
-texture generator script) and the desk lamp shadows, Claude helped write the code; every part was built, run and checked by the team member
-responsible for it.
+We used AI as an assistant in this project. We used it to divide responsibilities between team members, structure the OpenGL project, break down the Final Project requirements into tasks, and review the README. Claude also helped write and review code for the day/night cycle, time controls, HUD, shadow mapping, benchmark, textures (Texture class, UVs, texture shaders, texture generator script) and the desk lamp shadows. Every part was built, run and checked by the team member responsible for it, who can explain it.
 
 ## Credits
 
