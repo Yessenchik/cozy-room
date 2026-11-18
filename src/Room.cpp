@@ -68,6 +68,7 @@ void Room::buildAidanaObjects() {
     add("rug", { -0.2f, 0.01f, 0.5f }, { 3.5f, 0.02f, 4.0f }, { 1.0f, 1.0f, 1.0f }, rugTexture.get(), 0.0f);
 
     add("bed frame", { -1.9f, 0.2f, -1.0f }, { 1.8f, 0.4f, 2.6f }, { 0.48f, 0.27f, 0.13f }, woodGrain.get(), 0.5f);
+    add("bed headboard", { -1.9f, 0.55f, -2.35f }, { 1.8f, 1.1f, 0.1f }, { 0.42f, 0.23f, 0.11f }, woodGrain.get(), 0.5f);
     add("bed mattress", { -1.9f, 0.45f, -1.0f }, { 1.7f, 0.15f, 2.5f }, { 0.9f, 0.9f, 0.95f });
     add("bed blanket", { -1.9f, 0.47f, -0.2f }, { 1.72f, 0.15f, 1.7f }, { 0.2f, 0.4f, 0.6f });
     add("bed pillow", { -1.9f, 0.52f, -2.0f }, { 1.2f, 0.12f, 0.5f }, { 0.8f, 0.85f, 0.9f });
@@ -79,8 +80,8 @@ void Room::buildAidanaObjects() {
     add("shelf mid 1", { 2.5f, 0.8f, -2.7f }, { 0.85f, 0.05f, 0.55f }, { 0.35f, 0.2f, 0.1f }, woodGrain.get(), 0.5f);
     add("shelf mid 2", { 2.5f, 1.6f, -2.7f }, { 0.85f, 0.05f, 0.55f }, { 0.35f, 0.2f, 0.1f }, woodGrain.get(), 0.5f);
     add("book red", { 2.3f, 0.95f, -2.7f }, { 0.1f, 0.25f, 0.2f }, { 0.8f, 0.1f, 0.2f });
-    add("book green", { 2.45f, 0.93f, -2.7f }, { 0.08f, 0.22f, 0.2f }, { 0.2f, 0.7f, 0.3f });
-    add("book blue", { 2.7f, 1.75f, -2.7f }, { 0.12f, 0.28f, 0.22f }, { 0.1f, 0.2f, 0.8f });
+    add("book green", { 2.45f, 0.935f, -2.7f }, { 0.08f, 0.22f, 0.2f }, { 0.2f, 0.7f, 0.3f });
+    add("book blue", { 2.7f, 1.765f, -2.7f }, { 0.12f, 0.28f, 0.22f }, { 0.1f, 0.2f, 0.8f });
 
    
     add("plant pot", { -2.5f, 0.25f, 2.5f }, { 0.4f, 0.5f, 0.4f }, { 0.5f, 0.5f, 0.5f });
