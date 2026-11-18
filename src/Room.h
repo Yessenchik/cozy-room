@@ -1,15 +1,19 @@
 #pragma once
 #include <glm/glm.hpp>
+#include <memory>
 #include <string>
 #include <vector>
 #include "Mesh.h"
 #include "Shader.h"
+#include "Texture.h"
 
 struct RoomObject {
     std::string name;
     glm::vec3 position;   
     glm::vec3 size;       
     glm::vec3 color;
+    const Texture* texture;   // nullptr = plain colour
+    glm::vec3 texRepeat;      // how many times the texture repeats along x, y, z
 };
 
 class Room {
@@ -21,7 +25,9 @@ public:
         const std::string& name,
         glm::vec3 position,
         glm::vec3 size,
-        glm::vec3 color
+        glm::vec3 color,
+        const Texture* texture = nullptr,
+        float tileSize = 1.0f   // metres covered by one copy of the texture; 0 = stretch once
     );
 
     void draw(const Shader& shader) const;
@@ -32,4 +38,6 @@ private:
 
     std::vector<RoomObject> objects;
     Mesh* cube;
+
+    std::unique_ptr<Texture> woodFloor, wallPlaster, woodGrain, rugTexture;
 };
