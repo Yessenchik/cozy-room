@@ -154,7 +154,7 @@ Earlier progress screenshots are in `docs/screenshots/`.
 
 ## AI Use
 
-We used AI as an assistant in this project. We used it to divide responsibilities between team members, structure the OpenGL project, break down the Final Project requirements into tasks, and review the README. Claude also helped write and review code for the day/night cycle, time controls, HUD, shadow mapping, benchmark, textures (Texture class, UVs, texture shaders, texture generator script) and the desk lamp shadows. Every part was built, run and checked by the team member responsible for it, who can explain it.
+We used AI as an assistant in this project. We used it to divide responsibilities between team members, structure the OpenGL project, break down the Final Project requirements into tasks, and review the README.
 
 ## Credits
 
