@@ -16,6 +16,8 @@ uniform vec3 uLampColor;
 uniform sampler2DShadow uShadowMap;   // depth seen from the sun, texture unit 1
 uniform sampler2D uTexture;           // colour texture, texture unit 0
 uniform bool uUseTexture;             // false for plain-coloured furniture
+uniform samplerCube uLampShadowMap;   // distance to the closest surface around the lamp, unit 2
+uniform float uLampFarPlane;
 
 // 1.0 = fully lit by the sun, 0.0 = fully in shadow.
 // PCF: 3x3 samples around the pixel are averaged, so the shadow edge is soft.
@@ -33,6 +35,26 @@ float sunVisibility(vec3 N, vec3 L) {
         for (int y = -1; y <= 1; ++y)
             lit += texture(uShadowMap, vec3(p.xy + vec2(x, y) * texel, p.z - bias));
     return lit / 9.0;
+}
+
+// 1.0 = the lamp sees this pixel, 0.0 = something is between them.
+// The cube map is looked up with the direction from the lamp to the pixel;
+// 8 samples around that direction are averaged (PCF), so the edge is soft.
+float lampVisibility(vec3 lampToFrag) {
+    float current = length(lampToFrag);
+    const float bias = 0.03;
+    const float radius = 0.015;
+    const vec3 offsets[8] = vec3[](
+        vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1),
+        vec3( 1,  1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1,  1, -1));
+
+    float lit = 0.0;
+    for (int i = 0; i < 8; ++i) {
+        float closest = texture(uLampShadowMap, lampToFrag + offsets[i] * radius * current).r
+                        * uLampFarPlane;
+        lit += current - bias > closest ? 0.0 : 1.0;
+    }
+    return lit / 8.0;
 }
 
 void main() {
@@ -62,6 +84,10 @@ void main() {
     float lampDiff = max(dot(N, lampDirection), 0.0);
     float attenuation = 1.0 / (1.0 + 0.22 * distanceToLamp
                                   + 0.20 * distanceToLamp * distanceToLamp);
+
+    // the shadow test is skipped when the lamp is off (its colour is black)
+    float lampShadow = dot(uLampColor, uLampColor) > 0.0 ? lampVisibility(-lampVector) : 1.0;
+    attenuation *= lampShadow;
 
     vec3 lampDiffuse = lampDiff * albedo * uLampColor * attenuation;
 

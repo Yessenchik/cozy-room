@@ -10,6 +10,7 @@
 #include "DayNight.h"
 #include "Hud.h"
 #include "Mesh.h"
+#include "PointShadowMap.h"
 #include "Room.h"
 #include "Shader.h"
 #include "ShadowMap.h"
@@ -32,6 +33,7 @@ bool vsyncOn = true;
 const float LAMP_ON_HOUR = 19.0f;
 const float LAMP_OFF_HOUR = 7.0f;
 bool lampOn = false;
+const glm::vec3 LAMP_POS(1.98f, 1.43f, 1.35f);   // inside the lamp shade
 bool lWasPressed = false;
 
 // The room is a cut-away: no ceiling and no right wall, so the camera can look in.
@@ -192,6 +194,14 @@ int main() {
     Mesh* occluderCube = Mesh::createCube();
     const int SHADOW_TEXTURE_UNIT = 1;   // unit 0 is left free for colour textures
 
+    // shadows for the desk lamp (a point light): depth in all 6 directions
+    Shader pointShadowShader(
+        std::string(PROJECT_DIR) + "shaders/point_shadow.vert",
+        std::string(PROJECT_DIR) + "shaders/point_shadow.frag"
+    );
+    PointShadowMap lampShadowMap(1024);
+    const int LAMP_SHADOW_TEXTURE_UNIT = 2;
+
     Hud hud(
         std::string(PROJECT_DIR) + "shaders/hud.vert",
         std::string(PROJECT_DIR) + "shaders/hud.frag"
@@ -241,6 +251,18 @@ int main() {
         drawShadowOnlyOccluders(depthShader, *occluderCube);
         shadowMap.end(fbWidth, fbHeight);
 
+        // pass 1b: distances around the desk lamp, only while it is on
+        if (lampOn) {
+            pointShadowShader.use();
+            pointShadowShader.setVec3("uLightPos", LAMP_POS);
+            pointShadowShader.setFloat("uFarPlane", lampShadowMap.getFarPlane());
+            for (int face = 0; face < 6; ++face) {
+                pointShadowShader.setMat4("uLightSpace", lampShadowMap.beginFace(face, LAMP_POS));
+                room->draw(pointShadowShader, true);
+            }
+            lampShadowMap.end(fbWidth, fbHeight);
+        }
+
         // pass 2: the normal picture
         glClearColor(light.sky.r, light.sky.g, light.sky.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -261,10 +283,10 @@ int main() {
         shader.setInt("uShadowMap", SHADOW_TEXTURE_UNIT);
         shadowMap.bindTexture(SHADOW_TEXTURE_UNIT);
 
-        shader.setVec3(
-            "uLampPos",
-            glm::vec3(1.98f, 1.43f, 1.35f)
-        );
+        shader.setVec3("uLampPos", LAMP_POS);
+        shader.setInt("uLampShadowMap", LAMP_SHADOW_TEXTURE_UNIT);
+        shader.setFloat("uLampFarPlane", lampShadowMap.getFarPlane());
+        lampShadowMap.bindTexture(LAMP_SHADOW_TEXTURE_UNIT);
 
         shader.setVec3(
             "uLampColor",

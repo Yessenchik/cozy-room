@@ -90,11 +90,13 @@ void Room::buildAidanaObjects() {
     add("plant leaves 3", { -2.5f, 1.25f, 2.5f }, { 0.3f, 0.3f, 0.3f }, { 0.3f, 0.75f, 0.3f });
 }
 
-void Room::draw(const Shader& shader) const {
+void Room::draw(const Shader& shader, bool skipLamp) const {
     shader.setInt("uTexture", COLOR_TEXTURE_UNIT);
     const Texture* bound = nullptr;
 
     for (const RoomObject& obj : objects) {
+        if (skipLamp && obj.name.rfind("lamp", 0) == 0)
+            continue;
         glm::mat4 model = glm::translate(glm::mat4(1.0f), obj.position);
         model = glm::scale(model, obj.size);
 

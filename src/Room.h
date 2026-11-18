@@ -30,7 +30,9 @@ public:
         float tileSize = 1.0f   // metres covered by one copy of the texture; 0 = stretch once
     );
 
-    void draw(const Shader& shader) const;
+    // skipLamp leaves out the desk lamp itself: its bulb is inside the shade,
+    // so in the lamp's own shadow pass the shade would hide everything
+    void draw(const Shader& shader, bool skipLamp = false) const;
 
 private:
     void buildWalls();
