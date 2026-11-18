@@ -182,6 +182,8 @@ Rows for the team's laptops are added after running the benchmark on them.
 | | |
 |---|---|
 | ![Sunset](docs/screenshots/12-sunset-warm-light.png) | ![HUD and help](docs/screenshots/14-hud-and-help.png) |
+| ![Textured room in the morning](docs/screenshots/15-textured-room.png) | ![Wood floor and rug](docs/screenshots/16-wood-floor-and-rug.png) |
+| ![Night: desk lamp with shadows](docs/screenshots/17-night-lamp-shadows.png) | |
 
 Earlier progress screenshots are in `docs/screenshots/`.
 
