@@ -2,6 +2,7 @@
 in vec3 vWorldPos;
 in vec3 vNormal;
 in vec4 vLightSpacePos;
+in vec2 vTexCoord;
 
 out vec4 FragColor;
 
@@ -13,6 +14,8 @@ uniform vec3 uAmbient;      // sky fill light, changes with the time of day
 uniform vec3 uLampPos;
 uniform vec3 uLampColor;
 uniform sampler2DShadow uShadowMap;   // depth seen from the sun, texture unit 1
+uniform sampler2D uTexture;           // colour texture, texture unit 0
+uniform bool uUseTexture;             // false for plain-coloured furniture
 
 // 1.0 = fully lit by the sun, 0.0 = fully in shadow.
 // PCF: 3x3 samples around the pixel are averaged, so the shadow edge is soft.
@@ -33,17 +36,20 @@ float sunVisibility(vec3 N, vec3 L) {
 }
 
 void main() {
+    // the texture is tinted by the object colour, so one texture can serve several objects
+    vec3 albedo = uUseTexture ? texture(uTexture, vTexCoord).rgb * uColor : uColor;
+
     vec3 N = normalize(vNormal);
     vec3 V = normalize(uViewPos - vWorldPos);
 
     vec3 L = normalize(uLightDir);
     vec3 H = normalize(L + V);
 
-    vec3 ambient = uAmbient * uColor;
+    vec3 ambient = uAmbient * albedo;
 
     float diff = max(dot(N, L), 0.0);
     float shadow = sunVisibility(N, L);
-    vec3 diffuse = shadow * diff * uColor * uLightColor;
+    vec3 diffuse = shadow * diff * albedo * uLightColor;
 
     float spec = diff > 0.0 ? pow(max(dot(N, H), 0.0), 32.0) : 0.0;
     vec3 specular = shadow * 0.3 * spec * uLightColor;
@@ -57,7 +63,7 @@ void main() {
     float attenuation = 1.0 / (1.0 + 0.22 * distanceToLamp
                                   + 0.20 * distanceToLamp * distanceToLamp);
 
-    vec3 lampDiffuse = lampDiff * uColor * uLampColor * attenuation;
+    vec3 lampDiffuse = lampDiff * albedo * uLampColor * attenuation;
 
     float lampSpec = lampDiff > 0.0
         ? pow(max(dot(N, lampHalfway), 0.0), 32.0)

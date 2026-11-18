@@ -19,6 +19,8 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>&
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
 
     glBindVertexArray(0);
 }
@@ -55,6 +57,13 @@ Mesh* Mesh::createCube() {
         {{-0.5f, -0.5f, -0.5f}, { 0, -1,  0}}, {{ 0.5f, -0.5f, -0.5f}, { 0, -1,  0}},
         {{ 0.5f, -0.5f,  0.5f}, { 0, -1,  0}}, {{-0.5f, -0.5f,  0.5f}, { 0, -1,  0}},
     };
+
+    // every face lists its corners in the same order (bottom-left, bottom-right,
+    // top-right, top-left seen from outside), so they all get the same UVs 0..1.
+    // The shader multiplies them by the face size, so textures keep their scale.
+    const glm::vec2 cornerUV[4] = {{0, 0}, {1, 0}, {1, 1}, {0, 1}};
+    for (size_t i = 0; i < v.size(); ++i)
+        v[i].uv = cornerUV[i % 4];
 
     std::vector<unsigned int> indices;
     for (unsigned int face = 0; face < 6; ++face) {
