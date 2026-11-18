@@ -79,6 +79,7 @@ Stretch goals:
 - [x] Day/night cycle: the sun moves along an arc, the moon lights the room at night
 - [x] Warm/cold colour change by time of day (sky, sun and ambient colours)
 - [x] Shadow mapping for the sun, soft edges with 3x3 PCF
+- [x] Shadows from the desk lamp (cube-map shadow for a point light), e.g. under the desk
 - [ ] Dust particles in the light beam
 
 Wow moment: press **T** for a time-lapse from morning to night;
@@ -111,6 +112,15 @@ Shadow acne is removed with front-face culling in the depth pass and a small slo
 The room is a cut-away, so a ceiling and a right wall are drawn **only into the shadow
 map**: the camera can look in, but the sunlight enters only through the window.
 
+**Lamp shadows** (`PointShadowMap.cpp`, `point_shadow.*`, `basic.frag`). The desk lamp is a
+point light, so it shines in every direction and one flat shadow map is not enough. While
+the lamp is on, the scene is drawn six times from the bulb into the faces of a depth cube map
+(90 degree field of view each); every texel stores the distance from the lamp to the closest
+surface. `basic.frag` looks the cube map up with the direction from the lamp to the pixel and
+compares the two distances, averaging 8 samples for a soft edge. The lamp's own parts are left
+out of this pass, because the bulb sits inside the shade. The desk top now blocks the light,
+so the floor under the desk stays dark at night.
+
 **Textures** (`Texture.cpp`, `basic.vert`, `basic.frag`). Images are loaded with stb_image,
 uploaded once at start-up and given mipmaps (`glGenerateMipmap`) with trilinear filtering
 (`GL_LINEAR_MIPMAP_LINEAR`) and `GL_REPEAT`. Every cube face has UVs from 0 to 1; the vertex
@@ -137,12 +147,14 @@ src/
   Room.*             room and furniture
   DayNight.*         time of day -> sun/moon direction and colours
   ShadowMap.*        depth framebuffer for the sun
+  PointShadowMap.*   depth cube map for the desk lamp
   Hud.*              2D overlay: rectangles and text
   TimeControls.*     time keys, time slider, help panel
   Benchmark.*        FPS benchmark (key B)
 shaders/
   basic.vert/.frag   Blinn-Phong + sun shadows + desk lamp
   shadow_depth.*     depth pass for the shadow map
+  point_shadow.*     distance pass for the lamp's cube map
   hud.vert/.frag     2D overlay
 external/
   glad/              OpenGL loader
@@ -178,7 +190,7 @@ Earlier progress screenshots are in `docs/screenshots/`.
 We used Claude (Anthropic) as an assistant in this project.
 For the day/night cycle, time controls, HUD, shadow mapping and benchmark, Claude helped
 write and review the code. For the textures (Texture class, UVs, texture shaders and the
-texture generator script), Claude helped write the code; every part was built, run and checked by the team member
+texture generator script) and the desk lamp shadows, Claude helped write the code; every part was built, run and checked by the team member
 responsible for it.
 
 ## Credits
