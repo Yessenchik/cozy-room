@@ -20,7 +20,7 @@ Final project for Computer Graphics Fundamentals, Astana IT University
 ## Build
 
 Requirements: CMake 3.16+, a C++17 compiler, internet on the first build
-(GLFW and GLM are downloaded by CMake). GLAD and stb_easy_font are included in `external/`.
+(GLFW and GLM are downloaded by CMake). GLAD, stb_easy_font and stb_image are included in `external/`.
 
 ```bash
 cmake -S . -B build
@@ -72,7 +72,7 @@ Core (from the topic):
 - [x] Sun light through the window, moving with a time slider
 - [x] Desk lamp switched by a key (second light, point light with attenuation)
 - [ ] Fairy lights switched by a key
-- [ ] Textured walls and floor (with mipmaps)
+- [x] Textured walls and floor (with mipmaps), plus a patterned rug and wood grain on the bed and bookshelf
 
 Stretch goals:
 
@@ -111,6 +111,15 @@ Shadow acne is removed with front-face culling in the depth pass and a small slo
 The room is a cut-away, so a ceiling and a right wall are drawn **only into the shadow
 map**: the camera can look in, but the sunlight enters only through the window.
 
+**Textures** (`Texture.cpp`, `basic.vert`, `basic.frag`). Images are loaded with stb_image,
+uploaded once at start-up and given mipmaps (`glGenerateMipmap`) with trilinear filtering
+(`GL_LINEAR_MIPMAP_LINEAR`) and `GL_REPEAT`. Every cube face has UVs from 0 to 1; the vertex
+shader multiplies them by the size of that face divided by the tile size, so one 1 m tile
+repeats 6 times on the 6 m floor and the texture is never stretched. The colour texture
+uses unit 0 (the shadow map is on unit 1) and is multiplied by the object colour, so the
+same wallpaper or wood grain can be tinted per object. The textures themselves are made
+by `tools/make_textures.py`.
+
 **HUD** (`Hud.cpp`, `TimeControls.cpp`). A second, flat shader draws coloured
 rectangles and text on top of the scene with alpha blending. Letters come from
 stb_easy_font, which builds every character from small quads, so no font texture is needed.
@@ -123,7 +132,8 @@ src/
   main.cpp           window, input, render loop
   Camera.*           orbit camera
   Shader.*           loads and compiles GLSL programs
-  Mesh.*             VAO/VBO/EBO, cube mesh
+  Mesh.*             VAO/VBO/EBO, cube mesh with normals and UVs
+  Texture.*          loads an image with stb_image, mipmaps
   Room.*             room and furniture
   DayNight.*         time of day -> sun/moon direction and colours
   ShadowMap.*        depth framebuffer for the sun
@@ -136,7 +146,10 @@ shaders/
   hud.vert/.frag     2D overlay
 external/
   glad/              OpenGL loader
-  stb/               stb_easy_font
+  stb/               stb_easy_font, stb_image
+textures/            floor, wall, wood grain, rug (PNG)
+tools/
+  make_textures.py   generates the textures (Python, numpy + Pillow)
 ```
 
 ## Performance
@@ -164,7 +177,8 @@ Earlier progress screenshots are in `docs/screenshots/`.
 
 We used Claude (Anthropic) as an assistant in this project.
 For the day/night cycle, time controls, HUD, shadow mapping and benchmark, Claude helped
-write and review the code; every part was built, run and checked by the team member
+write and review the code. For the textures (Texture class, UVs, texture shaders and the
+texture generator script), Claude helped write the code; every part was built, run and checked by the team member
 responsible for it.
 
 ## Credits
