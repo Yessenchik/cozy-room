@@ -73,6 +73,7 @@ Core (from the topic):
 - [x] Desk lamp switched by a key (second light, point light with attenuation)
 - [ ] Fairy lights switched by a key
 - [x] Textured walls and floor (with mipmaps), plus a patterned rug and wood grain on the bed and bookshelf
+- [x] Framed picture of Saturn above the bed (texture drawn by our own script)
 
 Stretch goals:
 
