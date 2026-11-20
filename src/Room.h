@@ -44,16 +44,27 @@ public:
     void rotateLampArm(float degrees);
     glm::vec3 getLampLightPosition() const;
     void toggleLaptopScreen();
+    void setTimeOfDay(float hour);
+    void update(float deltaTime);
 
 private:
     void buildWalls();
     void buildAidanaObjects();
     void buildWallArt();
+    void buildCat();
 
     std::vector<RoomObject> objects;
     SceneNode lampRoot;
+    SceneNode catRoot;
     float lampArmAngle = 0.0f;
+    float timeOfDay = 12.0f;
+    int catActivity = -1;
+    float catMoveElapsed = 0.0f;
+    bool catMoving = false;
     bool laptopScreenOn = false;
+    glm::vec3 catPosition{ -1.9f, 0.60f, -1.0f };
+    glm::vec3 catMoveStart{ -1.9f, 0.60f, -1.0f };
+    glm::vec3 catMoveTarget{ -1.9f, 0.60f, -1.0f };
     Mesh* cube = nullptr;
 
     std::unique_ptr<Texture> woodFloor;
