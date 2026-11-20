@@ -1,11 +1,40 @@
 #include "Room.h"
+
 #include <glm/gtc/matrix_transform.hpp>
 
-const glm::vec3 FLOOR_COLOR(1.0f, 1.0f, 1.0f);   // the floor texture has its own colour
+const glm::vec3 FLOOR_COLOR(1.0f, 1.0f, 1.0f);
 const glm::vec3 WALL_COLOR(0.56f, 0.70f, 0.90f);
 const glm::vec3 FRAME_COLOR(0.95f, 0.95f, 0.92f);
 
-const int COLOR_TEXTURE_UNIT = 0;   // unit 1 is the shadow map
+const int COLOR_TEXTURE_UNIT = 0;
+
+namespace {
+    void drawNode(
+        const SceneNode& node,
+        const glm::mat4& parentTransform,
+        const Shader& shader,
+        const Mesh* cube
+    ) {
+        const glm::mat4 worldTransform = parentTransform * node.localTransform;
+
+        if (node.hasMesh) {
+            const glm::mat4 model = glm::scale(worldTransform, node.size);
+
+            shader.setMat4("uModel", model);
+            shader.setMat3(
+                "uNormalMatrix",
+                glm::mat3(glm::transpose(glm::inverse(model)))
+            );
+            shader.setVec3("uColor", node.color);
+            shader.setInt("uUseTexture", 0);
+            cube->draw();
+        }
+
+        for (const SceneNode& child : node.children) {
+            drawNode(child, worldTransform, shader, cube);
+        }
+    }
+}
 
 Room::Room() {
     cube = Mesh::createCube();
@@ -18,37 +47,133 @@ Room::Room() {
     saturnArt = std::make_unique<Texture>(dir + "art_saturn.png");
 
     buildWalls();
-
     buildAidanaObjects();
     buildWallArt();
 
-    add("desk top", { 1.65f, 0.82f, 1.35f }, { 1.8f, 0.12f, 1.0f }, { 0.48f, 0.27f, 0.13f });
-    add("desk leg FL", { 0.85f, 0.40f, 0.95f }, { 0.10f, 0.8f, 0.10f }, { 0.30f, 0.16f, 0.08f });
-    add("desk leg FR", { 2.45f, 0.40f, 0.95f }, { 0.10f, 0.8f, 0.10f }, { 0.30f, 0.16f, 0.08f });
-    add("desk leg BL", { 0.85f, 0.40f, 1.75f }, { 0.10f, 0.8f, 0.10f }, { 0.30f, 0.16f, 0.08f });
-    add("desk leg BR", { 2.45f, 0.40f, 1.75f }, { 0.10f, 0.8f, 0.10f }, { 0.30f, 0.16f, 0.08f });
-    add("chair seat", { 1.65f, 0.48f, 2.20f }, { 0.65f, 0.12f, 0.65f }, { 0.18f, 0.30f, 0.38f });
-    add("chair back", { 1.65f, 0.95f, 2.48f }, { 0.65f, 0.85f, 0.10f }, { 0.18f, 0.30f, 0.38f });
-    add("chair leg FL", { 1.38f, 0.23f, 1.95f }, { 0.08f, 0.46f, 0.08f }, { 0.12f, 0.12f, 0.13f });
-    add("chair leg FR", { 1.92f, 0.23f, 1.95f }, { 0.08f, 0.46f, 0.08f }, { 0.12f, 0.12f, 0.13f });
-    add("chair leg BL", { 1.38f, 0.23f, 2.43f }, { 0.08f, 0.46f, 0.08f }, { 0.12f, 0.12f, 0.13f });
-    add("chair leg BR", { 1.92f, 0.23f, 2.43f }, { 0.08f, 0.46f, 0.08f }, { 0.12f, 0.12f, 0.13f });
-    add("lamp base", { 2.25f, 0.94f, 1.35f }, { 0.38f, 0.06f, 0.30f }, { 0.10f, 0.12f, 0.15f });
-    add("lamp stem", { 2.25f, 1.13f, 1.35f }, { 0.07f, 0.38f, 0.07f }, { 0.10f, 0.12f, 0.15f });
-    add("lamp arm", { 2.12f, 1.31f, 1.35f }, { 0.32f, 0.06f, 0.06f }, { 0.10f, 0.12f, 0.15f });
-    add("lamp shade", { 1.98f, 1.43f, 1.35f }, { 0.28f, 0.18f, 0.24f }, { 0.95f, 0.72f, 0.28f });
+    add("desk top", { 0.5f, 0.82f, -2.35f }, { 1.8f, 0.12f, 1.0f }, { 0.48f, 0.27f, 0.13f });
+    add("desk leg FL", { -0.30f, 0.40f, -2.75f }, { 0.10f, 0.8f, 0.10f }, { 0.30f, 0.16f, 0.08f });
+    add("desk leg FR", { 1.30f, 0.40f, -2.75f }, { 0.10f, 0.8f, 0.10f }, { 0.30f, 0.16f, 0.08f });
+    add("desk leg BL", { -0.30f, 0.40f, -1.95f }, { 0.10f, 0.8f, 0.10f }, { 0.30f, 0.16f, 0.08f });
+    add("desk leg BR", { 1.30f, 0.40f, -1.95f }, { 0.10f, 0.8f, 0.10f }, { 0.30f, 0.16f, 0.08f });
+
+    add("chair seat", { 0.5f, 0.48f, -1.35f }, { 0.65f, 0.12f, 0.65f }, { 0.18f, 0.30f, 0.38f });
+    add("chair back", { 0.5f, 0.95f, -1.02f }, { 0.65f, 0.85f, 0.10f }, { 0.18f, 0.30f, 0.38f });
+    add("chair leg FL", { 0.23f, 0.23f, -1.08f }, { 0.08f, 0.46f, 0.08f }, { 0.12f, 0.12f, 0.13f });
+    add("chair leg FR", { 0.77f, 0.23f, -1.08f }, { 0.08f, 0.46f, 0.08f }, { 0.12f, 0.12f, 0.13f });
+    add("chair leg BL", { 0.23f, 0.23f, -1.62f }, { 0.08f, 0.46f, 0.08f }, { 0.12f, 0.12f, 0.13f });
+    add("chair leg BR", { 0.77f, 0.23f, -1.62f }, { 0.08f, 0.46f, 0.08f }, { 0.12f, 0.12f, 0.13f });
+
+    add("laptop base", { 0.35f, 0.905f, -2.35f }, { 0.62f, 0.035f, 0.42f }, { 0.12f, 0.14f, 0.17f });
+    add("laptop keyboard", { 0.35f, 0.927f, -2.37f }, { 0.48f, 0.012f, 0.23f }, { 0.24f, 0.27f, 0.30f });
+    add("laptop touchpad", { 0.35f, 0.928f, -2.22f }, { 0.16f, 0.012f, 0.09f }, { 0.35f, 0.37f, 0.39f });
+    add("laptop screen frame", { 0.35f, 1.11f, -2.53f }, { 0.58f, 0.38f, 0.04f }, { 0.035f, 0.04f, 0.05f });
+    add("laptop display", { 0.35f, 1.11f, -2.505f }, { 0.52f, 0.32f, 0.008f }, { 0.01f, 0.015f, 0.025f });
+
+    lampRoot.localTransform = glm::translate(
+        glm::mat4(1.0f),
+        glm::vec3(1.18f, 0.91f, -2.35f)
+    );
+    lampRoot.hasMesh = true;
+    lampRoot.size = { 0.38f, 0.06f, 0.30f };
+    lampRoot.color = { 0.10f, 0.12f, 0.15f };
+
+    SceneNode stem;
+    stem.localTransform = glm::translate(
+        glm::mat4(1.0f),
+        glm::vec3(0.0f, 0.19f, 0.0f)
+    );
+    stem.hasMesh = true;
+    stem.size = { 0.07f, 0.38f, 0.07f };
+    stem.color = { 0.10f, 0.12f, 0.15f };
+
+    SceneNode pivot;
+    pivot.localTransform = glm::translate(
+        glm::mat4(1.0f),
+        glm::vec3(0.0f, 0.19f, 0.0f)
+    );
+
+    SceneNode arm;
+    arm.localTransform = glm::translate(
+        glm::mat4(1.0f),
+        glm::vec3(-0.16f, 0.0f, 0.0f)
+    );
+    arm.hasMesh = true;
+    arm.size = { 0.32f, 0.06f, 0.06f };
+    arm.color = { 0.10f, 0.12f, 0.15f };
+
+    SceneNode shade;
+    shade.localTransform = glm::translate(
+        glm::mat4(1.0f),
+        glm::vec3(-0.14f, 0.05f, 0.0f)
+    );
+    shade.hasMesh = true;
+    shade.size = { 0.28f, 0.18f, 0.24f };
+    shade.color = { 0.95f, 0.72f, 0.28f };
+
+    arm.children.push_back(shade);
+    pivot.children.push_back(arm);
+    stem.children.push_back(pivot);
+    lampRoot.children.push_back(stem);
 }
 
 Room::~Room() {
     delete cube;
 }
 
-void Room::add(const std::string& name, glm::vec3 position, glm::vec3 size, glm::vec3 color,
-               const Texture* texture, float tileSize) {
-    glm::vec3 repeat = tileSize > 0.0f ? size / tileSize : glm::vec3(1.0f);
-    if (texture && !texture->isLoaded())
-        texture = nullptr;   // missing file: fall back to the plain colour
+void Room::add(
+    const std::string& name,
+    glm::vec3 position,
+    glm::vec3 size,
+    glm::vec3 color,
+    const Texture* texture,
+    float tileSize
+) {
+    const glm::vec3 repeat =
+        tileSize > 0.0f ? size / tileSize : glm::vec3(1.0f);
+
+    if (texture && !texture->isLoaded()) {
+        texture = nullptr;
+    }
+
     objects.push_back({ name, position, size, color, texture, repeat });
+}
+
+void Room::rotateLampArm(float degrees) {
+    lampArmAngle = glm::clamp(lampArmAngle + degrees, -60.0f, 60.0f);
+
+    SceneNode& pivot = lampRoot.children[0].children[0];
+
+    pivot.localTransform = glm::translate(
+        glm::mat4(1.0f),
+        glm::vec3(0.0f, 0.19f, 0.0f)
+    );
+    pivot.localTransform = glm::rotate(
+        pivot.localTransform,
+        glm::radians(lampArmAngle),
+        glm::vec3(0.0f, 0.0f, 1.0f)
+    );
+}
+
+glm::vec3 Room::getLampLightPosition() const {
+    const SceneNode& stem = lampRoot.children[0];
+    const SceneNode& pivot = stem.children[0];
+    const SceneNode& arm = pivot.children[0];
+    const SceneNode& shade = arm.children[0];
+
+    glm::mat4 world = lampRoot.localTransform;
+    world = world * stem.localTransform;
+    world = world * pivot.localTransform;
+    world = world * arm.localTransform;
+    world = world * shade.localTransform;
+
+    const glm::vec4 position =
+        world * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+
+    return glm::vec3(position);
+}
+
+void Room::toggleLaptopScreen() {
+    laptopScreenOn = !laptopScreenOn;
 }
 
 void Room::buildWalls() {
@@ -65,9 +190,6 @@ void Room::buildWalls() {
     add("window frame mid", { 0.5f, 1.65f, -3.0f }, { 0.05f, 1.3f, 0.12f }, FRAME_COLOR);
 }
 
-// A framed picture of Saturn on the back wall, above the bed.
-// The canvas is 2 mm thicker than the frame, so its front face sits just in
-// front of the frame and the picture is mapped once (tile 0) without stretching.
 void Room::buildWallArt() {
     const glm::vec3 center(-1.9f, 1.8f, -2.98f);
     add("saturn frame", center, { 0.98f, 0.98f, 0.04f }, { 0.20f, 0.12f, 0.07f }, woodGrain.get(), 0.5f);
@@ -75,7 +197,6 @@ void Room::buildWallArt() {
 }
 
 void Room::buildAidanaObjects() {
-    // the rug image has the same 3.5 : 4 shape as the rug, so it is laid once (tile 0)
     add("rug", { -0.2f, 0.01f, 0.5f }, { 3.5f, 0.02f, 4.0f }, { 1.0f, 1.0f, 1.0f }, rugTexture.get(), 0.0f);
 
     add("bed frame", { -1.9f, 0.2f, -1.0f }, { 1.8f, 0.4f, 2.6f }, { 0.48f, 0.27f, 0.13f }, woodGrain.get(), 0.5f);
@@ -94,7 +215,6 @@ void Room::buildAidanaObjects() {
     add("book green", { 2.45f, 0.935f, -2.7f }, { 0.08f, 0.22f, 0.2f }, { 0.2f, 0.7f, 0.3f });
     add("book blue", { 2.7f, 1.765f, -2.7f }, { 0.12f, 0.28f, 0.22f }, { 0.1f, 0.2f, 0.8f });
 
-   
     add("plant pot", { -2.5f, 0.25f, 2.5f }, { 0.4f, 0.5f, 0.4f }, { 0.5f, 0.5f, 0.5f });
     add("plant leaves 1", { -2.5f, 0.65f, 2.5f }, { 0.7f, 0.4f, 0.7f }, { 0.2f, 0.55f, 0.2f });
     add("plant leaves 2", { -2.5f, 0.95f, 2.5f }, { 0.5f, 0.4f, 0.5f }, { 0.25f, 0.65f, 0.25f });
@@ -106,17 +226,31 @@ void Room::draw(const Shader& shader, bool skipLamp) const {
     const Texture* bound = nullptr;
 
     for (const RoomObject& obj : objects) {
-        if (skipLamp && obj.name.rfind("lamp", 0) == 0)
-            continue;
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), obj.position);
-        model = glm::scale(model, obj.size);
+        const glm::mat4 model =
+            glm::scale(
+                glm::translate(glm::mat4(1.0f), obj.position),
+                obj.size
+            );
 
         shader.setMat4("uModel", model);
-        shader.setMat3("uNormalMatrix", glm::mat3(glm::transpose(glm::inverse(model))));
-        shader.setVec3("uColor", obj.color);
+        shader.setMat3(
+            "uNormalMatrix",
+            glm::mat3(glm::transpose(glm::inverse(model)))
+        );
+
+        glm::vec3 color = obj.color;
+        if (obj.name == "laptop display") {
+            color = laptopScreenOn
+                ? glm::vec3(0.08f, 0.55f, 1.0f)
+                : glm::vec3(0.01f, 0.015f, 0.025f);
+        }
+
+        shader.setVec3("uColor", color);
         shader.setInt("uUseTexture", obj.texture ? 1 : 0);
+
         if (obj.texture) {
             shader.setVec3("uTexRepeat", obj.texRepeat);
+
             if (obj.texture != bound) {
                 obj.texture->bind(COLOR_TEXTURE_UNIT);
                 bound = obj.texture;
@@ -124,5 +258,9 @@ void Room::draw(const Shader& shader, bool skipLamp) const {
         }
 
         cube->draw();
+    }
+
+    if (!skipLamp) {
+        drawNode(lampRoot, glm::mat4(1.0f), shader, cube);
     }
 }
