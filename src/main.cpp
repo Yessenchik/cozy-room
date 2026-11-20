@@ -273,6 +273,7 @@ int main() {
     glEnable(GL_DEPTH_TEST);
 
     lampOn = lampShouldBeOn(dayNight.getHour());
+    room->setTimeOfDay(dayNight.getHour());
 
     double lastFrameTime = glfwGetTime();
     double fpsTimer = lastFrameTime;
@@ -300,6 +301,8 @@ int main() {
         const float prevHour = dayNight.getHour();
         timeControls.update(window, deltaTime);
         dayNight.update(deltaTime);
+        room->setTimeOfDay(dayNight.getHour());
+        room->update(deltaTime);
 
         if (timeControls.takeJump() || benchmarkJustEnded) {
             lampOn = lampShouldBeOn(dayNight.getHour());
