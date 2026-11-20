@@ -37,9 +37,10 @@ public:
 private:
     void buildWalls();
     void buildAidanaObjects(); 
+    void buildWallArt();
 
     std::vector<RoomObject> objects;
     Mesh* cube;
 
-    std::unique_ptr<Texture> woodFloor, wallPlaster, woodGrain, rugTexture;
+    std::unique_ptr<Texture> woodFloor, wallPlaster, woodGrain, rugTexture, saturnArt;
 };

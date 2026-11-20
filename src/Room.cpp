@@ -15,10 +15,12 @@ Room::Room() {
     wallPlaster = std::make_unique<Texture>(dir + "wall_plaster.png");
     woodGrain = std::make_unique<Texture>(dir + "wood_grain.png");
     rugTexture = std::make_unique<Texture>(dir + "rug.png");
+    saturnArt = std::make_unique<Texture>(dir + "art_saturn.png");
 
     buildWalls();
 
     buildAidanaObjects();
+    buildWallArt();
 
     add("desk top", { 1.65f, 0.82f, 1.35f }, { 1.8f, 0.12f, 1.0f }, { 0.48f, 0.27f, 0.13f });
     add("desk leg FL", { 0.85f, 0.40f, 0.95f }, { 0.10f, 0.8f, 0.10f }, { 0.30f, 0.16f, 0.08f });
@@ -61,6 +63,15 @@ void Room::buildWalls() {
     add("window frame left", { -0.48f, 1.65f, -3.0f }, { 0.05f, 1.3f, 0.12f }, FRAME_COLOR);
     add("window frame right", { 1.48f, 1.65f, -3.0f }, { 0.05f, 1.3f, 0.12f }, FRAME_COLOR);
     add("window frame mid", { 0.5f, 1.65f, -3.0f }, { 0.05f, 1.3f, 0.12f }, FRAME_COLOR);
+}
+
+// A framed picture of Saturn on the back wall, above the bed.
+// The canvas is 2 mm thicker than the frame, so its front face sits just in
+// front of the frame and the picture is mapped once (tile 0) without stretching.
+void Room::buildWallArt() {
+    const glm::vec3 center(-1.9f, 1.8f, -2.98f);
+    add("saturn frame", center, { 0.98f, 0.98f, 0.04f }, { 0.20f, 0.12f, 0.07f }, woodGrain.get(), 0.5f);
+    add("saturn canvas", center, { 0.86f, 0.86f, 0.044f }, { 1.0f, 1.0f, 1.0f }, saturnArt.get(), 0.0f);
 }
 
 void Room::buildAidanaObjects() {

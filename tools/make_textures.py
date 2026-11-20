@@ -138,9 +138,73 @@ def rug(width=448, height=512):
     return rgb * (weave * n)[..., None]
 
 
+def saturn(size=512):
+    """Framed picture of Saturn: starry space, a banded planet lit from the
+    upper left, and tilted rings that pass behind and in front of it."""
+    h = w = size
+    y, x = np.mgrid[0:h, 0:w].astype(float)
+
+    # deep space: dark blue gradient with a faint purple haze and stars
+    v = y / h
+    rgb = np.empty((h, w, 3))
+    rgb[:] = np.array([0.02, 0.03, 0.08])
+    rgb += (0.06 * (1 - v))[..., None] * np.array([0.3, 0.2, 0.6])
+    haze = fbm(h, w, [128, 64, 32])
+    rgb += (0.05 * haze)[..., None] * np.array([0.5, 0.3, 0.8])
+    stars = rng.random((h, w))
+    bright = rng.random((h, w))
+    rgb[stars > 0.9975] = 0.6 + 0.4 * bright[stars > 0.9975][:, None]
+    rgb[stars > 0.9995] = 1.0
+
+    cx, cy, R = w * 0.5, h * 0.5, w * 0.2
+    tilt = np.radians(-22)                       # ring plane tilt
+    dx, dy = x - cx, y - cy
+    # coordinates in the ring plane: rx along the rings, ry across them
+    rx = dx * np.cos(tilt) - dy * np.sin(tilt)
+    ry = dx * np.sin(tilt) + dy * np.cos(tilt)
+    squash = 0.28                                # how open the rings look
+    rr = np.sqrt(rx ** 2 + (ry / squash) ** 2) / R
+
+    # rings: bands of different brightness, with the dark Cassini gap
+    ring_alpha = np.zeros((h, w))
+    inside = (rr > 1.25) & (rr < 2.25)
+    band = 0.55 + 0.45 * np.sin(rr * 38.0) * np.sin(rr * 7.0)
+    ring_alpha[inside] = (0.35 + 0.55 * band[inside])
+    ring_alpha[(rr > 1.86) & (rr < 1.95)] = 0.08   # Cassini division
+    ring_alpha[(rr > 2.15)] *= np.clip((2.25 - rr[(rr > 2.15)]) / 0.1, 0, 1)
+    ring_col = np.array([0.86, 0.77, 0.60])
+
+    # planet: latitude bands, soft noise, lit from the upper left
+    d = np.sqrt(dx ** 2 + dy ** 2) / R
+    planet = d < 1.0
+    lat = ry / R                                 # bands follow the ring plane
+    bands = 0.5 + 0.5 * np.sin(lat * 9.0 + 0.6 * fbm(h, w, [64, 16]))
+    c1 = np.array([0.93, 0.80, 0.55])
+    c2 = np.array([0.74, 0.55, 0.34])
+    pcol = c1 * (1 - bands[..., None]) + c2 * bands[..., None]
+    nz = np.sqrt(np.clip(1 - d ** 2, 0, 1))      # sphere normal (z part)
+    light = np.array([-0.55, -0.45, 0.70])
+    light /= np.linalg.norm(light)
+    lambert = np.clip((dx / R) * light[0] + (dy / R) * light[1] + nz * light[2], 0, 1)
+    shade = 0.12 + 0.95 * lambert
+
+    # far half of the rings is behind the planet, near half is in front
+    far = ry < 0
+    a = ring_alpha * far
+    rgb = rgb * (1 - a[..., None]) + ring_col * a[..., None]
+    rgb[planet] = (pcol * shade[..., None])[planet]
+    a = ring_alpha * ~far
+    # the planet's shadow falls on the rings behind it (lower right side)
+    rgb = rgb * (1 - a[..., None]) + ring_col * a[..., None]
+    behind_shadow = far & (rr > 1.2) & (rr < 2.25) & (rx > 0) & (np.abs(ry) < R * squash * 1.4) & ~planet
+    rgb[behind_shadow] *= 0.45
+    return np.clip(rgb, 0, 1)
+
+
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
     save("wood_floor.png", wood_floor())
     save("wall_plaster.png", wall_plaster())
     save("wood_grain.png", wood_grain())
     save("rug.png", rug())
+    save("art_saturn.png", saturn())
