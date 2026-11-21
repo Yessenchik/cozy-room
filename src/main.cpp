@@ -9,6 +9,7 @@
 #include "Benchmark.h"
 #include "Camera.h"
 #include "DayNight.h"
+#include "FairyLights.h"
 #include "Hud.h"
 #include "Mesh.h"
 #include "PointShadowMap.h"
@@ -16,6 +17,7 @@
 #include "Shader.h"
 #include "ShadowMap.h"
 #include "TimeControls.h"
+#include "WindowSky.h"
 
 const int WINDOW_WIDTH = 1280;
 const int WINDOW_HEIGHT = 720;
@@ -29,6 +31,7 @@ DayNight dayNight(8.0f);
 TimeControls timeControls(dayNight);
 Benchmark benchmark;
 bool vsyncOn = true;
+FairyLights* fairyLights = nullptr;   // created after the OpenGL context
 
 const float LAMP_ON_HOUR = 19.0f;
 const float LAMP_OFF_HOUR = 7.0f;
@@ -108,6 +111,10 @@ void onKey(GLFWwindow* window, int key, int, int action, int) {
 
     if (action != GLFW_PRESS) {
         return;
+    }
+
+    if (key == GLFW_KEY_F && fairyLights) {
+        fairyLights->toggle();
     }
 
     if (key == GLFW_KEY_B) {
@@ -229,26 +236,7 @@ int main() {
 
     Room* room = new Room();
 
-    Shader windowSkyShader(
-        std::string(PROJECT_DIR) + "shaders/window_sky.vert",
-        std::string(PROJECT_DIR) + "shaders/window_sky.frag"
-    );
-    Mesh* windowSkyCube = Mesh::createCube();
-
-    Shader windowPlaneShader(
-        std::string(PROJECT_DIR) + "shaders/window_plane.vert",
-        std::string(PROJECT_DIR) + "shaders/window_sky.frag"
-    );
-    Mesh* windowPlaneCube = Mesh::createCube();
-
-    glm::mat4 windowPlaneModel = glm::translate(
-        glm::mat4(1.0f),
-        glm::vec3(0.5f, 1.64f, -3.115f)
-    );
-    windowPlaneModel = glm::scale(
-        windowPlaneModel,
-        glm::vec3(1.91f, 1.18f, 0.01f)
-    );
+    WindowSky windowSky;
 
     Shader depthShader(
         std::string(PROJECT_DIR) + "shaders/shadow_depth.vert",
@@ -265,6 +253,8 @@ int main() {
     PointShadowMap lampShadowMap(1024);
     const int LAMP_SHADOW_TEXTURE_UNIT = 2;
 
+    fairyLights = new FairyLights();
+
     Hud hud(
         std::string(PROJECT_DIR) + "shaders/hud.vert",
         std::string(PROJECT_DIR) + "shaders/hud.frag"
@@ -273,6 +263,7 @@ int main() {
     glEnable(GL_DEPTH_TEST);
 
     lampOn = lampShouldBeOn(dayNight.getHour());
+    fairyLights->setOn(lampOn);
     room->setTimeOfDay(dayNight.getHour());
 
     double lastFrameTime = glfwGetTime();
@@ -304,19 +295,25 @@ int main() {
         room->setTimeOfDay(dayNight.getHour());
         room->update(deltaTime);
 
+        // the desk lamp and the fairy lights switch on in the evening
+        // and off in the morning; L and F still work at any time
         if (timeControls.takeJump() || benchmarkJustEnded) {
             lampOn = lampShouldBeOn(dayNight.getHour());
+            fairyLights->setOn(lampOn);
         }
         else {
             if (DayNight::passed(
                 prevHour, dayNight.getHour(), LAMP_ON_HOUR)) {
                 lampOn = true;
+                fairyLights->setOn(true);
             }
             if (DayNight::passed(
                 prevHour, dayNight.getHour(), LAMP_OFF_HOUR)) {
                 lampOn = false;
+                fairyLights->setOn(false);
             }
         }
+        fairyLights->update(deltaTime);
 
         const Lighting light = dayNight.getLighting();
 
@@ -364,55 +361,8 @@ int main() {
             camera.getProjectionMatrix(aspect);
         const glm::vec3 cameraPosition = camera.getPosition();
 
-        const glm::vec3 sunTarget(
-            0.5f + (0.76f - 0.5f) * 1.91f,
-            1.64f + (0.70f - 0.5f) * 1.18f,
-            -3.115f
-        );
-
-        const glm::vec3 moonTarget(
-            0.5f + (0.78f - 0.5f) * 1.91f,
-            1.64f + (0.72f - 0.5f) * 1.18f,
-            -3.115f
-        );
-
-        const glm::vec3 sunDirection =
-            glm::normalize(sunTarget - cameraPosition);
-        const glm::vec3 moonDirection =
-            glm::normalize(moonTarget - cameraPosition);
-
-        const GLboolean cullingWasEnabled =
-            glIsEnabled(GL_CULL_FACE);
-        GLint previousCullMode = GL_BACK;
-        glGetIntegerv(GL_CULL_FACE_MODE, &previousCullMode);
-
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_FRONT);
-        glDepthFunc(GL_LEQUAL);
-        glDepthMask(GL_FALSE);
-
-        windowSkyShader.use();
-        windowSkyShader.setMat4(
-            "uView",
-            glm::mat4(glm::mat3(view))
-        );
-        windowSkyShader.setMat4("uProjection", projection);
-        windowSkyShader.setFloat("uHour", dayNight.getHour());
-        windowSkyShader.setFloat(
-            "uTime",
-            static_cast<float>(glfwGetTime())
-        );
-        windowSkyShader.setVec3("uSunDirection", sunDirection);
-        windowSkyShader.setVec3("uMoonDirection", moonDirection);
-        windowSkyCube->draw();
-
-        glDepthMask(GL_TRUE);
-        glDepthFunc(GL_LESS);
-        glCullFace(previousCullMode);
-
-        if (!cullingWasEnabled) {
-            glDisable(GL_CULL_FACE);
-        }
+        windowSky.drawBackground(view, projection, cameraPosition,
+                                 dayNight.getHour(), (float)glfwGetTime());
 
         shader.use();
         shader.setMat4("uView", view);
@@ -443,28 +393,20 @@ int main() {
             : glm::vec3(0.0f)
         );
 
+        fairyLights->applyLights(shader);
+        room->setLampOn(lampOn);
         room->draw(shader);
+        fairyLights->draw(shader);
 
-        windowPlaneShader.use();
-        windowPlaneShader.setMat4("uModel", windowPlaneModel);
-        windowPlaneShader.setMat4("uView", view);
-        windowPlaneShader.setMat4("uProjection", projection);
-        windowPlaneShader.setVec3("uCameraPos", cameraPosition);
-        windowPlaneShader.setVec3("uSunDirection", sunDirection);
-        windowPlaneShader.setVec3("uMoonDirection", moonDirection);
-        windowPlaneShader.setFloat("uHour", dayNight.getHour());
-        windowPlaneShader.setFloat(
-            "uTime",
-            static_cast<float>(glfwGetTime())
-        );
-        windowPlaneCube->draw();
+        windowSky.drawPane(view, projection, cameraPosition,
+                           dayNight.getHour(), (float)glfwGetTime());
 
         int winWidth;
         int winHeight;
         glfwGetWindowSize(window, &winWidth, &winHeight);
 
         hud.begin(winWidth, winHeight);
-        timeControls.draw(hud, winWidth, winHeight, fps, lampOn);
+        timeControls.draw(hud, winWidth, winHeight, fps, lampOn, fairyLights->isOn());
 
         const std::string benchText = benchmark.statusText();
         if (!benchText.empty()) {
@@ -514,8 +456,7 @@ int main() {
         }
     }
 
-    delete windowPlaneCube;
-    delete windowSkyCube;
+    delete fairyLights;
     delete occluderCube;
     delete room;
     glfwTerminate();

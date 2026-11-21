@@ -211,7 +211,8 @@ void TimeControls::draw(
     int windowWidth,
     int windowHeight,
     float fps,
-    bool lampOn
+    bool lampOn,
+    bool fairyOn
 ) const {
     const float pad = 12.0f;
 
@@ -243,8 +244,9 @@ void TimeControls::draw(
     std::snprintf(
         infoLine,
         sizeof(infoLine),
-        "Lamp: %s     FPS: %.0f",
+        "Lamp: %s   Lights: %s   FPS: %.0f",
         lampOn ? "on" : "off",
+        fairyOn ? "on" : "off",
         fps
     );
 
@@ -316,6 +318,7 @@ void TimeControls::draw(
             { "", "" },
             { "SCENE", "" },
             { "L", "desk lamp on / off" },
+            { "F", "fairy lights on / off" },
             { "[ / ]", "rotate lamp arm" },
             { "P", "laptop screen on / off" },
             { "Cat", "changes activity with time" },

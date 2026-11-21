@@ -22,6 +22,7 @@ struct SceneNode {
     glm::mat4 localTransform{ 1.0f };
     glm::vec3 size{ 1.0f };
     glm::vec3 color{ 1.0f };
+    glm::vec3 emissive{ 0.0f };   // light the part gives off itself (the lamp shade when it is on)
     bool hasMesh = false;
     std::vector<SceneNode> children;
 };
@@ -44,6 +45,7 @@ public:
     void rotateLampArm(float degrees);
     glm::vec3 getLampLightPosition() const;
     void toggleLaptopScreen();
+    void setLampOn(bool on);   // the shade glows while the lamp is on
     void setTimeOfDay(float hour);
     void update(float deltaTime);
 
