@@ -459,6 +459,7 @@ int main() {
         );
 
         fairyLights->applyLights(shader);
+        room->setLampOn(lampOn);
         room->draw(shader);
         fairyLights->draw(shader);
 

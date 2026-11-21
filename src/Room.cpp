@@ -27,6 +27,7 @@ namespace {
                 glm::mat3(glm::transpose(glm::inverse(model)))
             );
             shader.setVec3("uColor", node.color);
+            shader.setVec3("uEmissive", node.emissive);
             shader.setInt("uUseTexture", 0);
             cube->draw();
         }
@@ -199,6 +200,12 @@ glm::vec3 Room::getLampLightPosition() const {
         world * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
     return glm::vec3(position);
+}
+
+void Room::setLampOn(bool on) {
+    // lampRoot -> stem -> pivot -> arm -> shade
+    SceneNode& shade = lampRoot.children[0].children[0].children[0].children[0];
+    shade.emissive = on ? glm::vec3(0.85f, 0.62f, 0.30f) : glm::vec3(0.0f);
 }
 
 void Room::toggleLaptopScreen() {
@@ -470,7 +477,10 @@ void Room::draw(const Shader& shader, bool skipLamp) const {
                 : glm::vec3(0.01f, 0.015f, 0.025f);
         }
 
+        // a screen that is on gives off its own light, like the lamp shade
+        const bool glowingScreen = obj.name == "laptop display" && laptopScreenOn;
         shader.setVec3("uColor", color);
+        shader.setVec3("uEmissive", glowingScreen ? color * 0.6f : glm::vec3(0.0f));
         shader.setInt("uUseTexture", obj.texture ? 1 : 0);
 
         if (obj.texture) {
