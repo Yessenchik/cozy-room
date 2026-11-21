@@ -2,10 +2,10 @@
 
 ## Team
 
-- Yessen: project setup, window, shaders, camera, lighting, empty room
-- Aidana: bed, bookshelf, rug, plant, textures
-- Aruzhan: desk, chair, desk lamp and its light, scene graph
-- Baxa: day/night cycle, time controls, on-screen help, sun shadows, final checks
+- Yessen: project setup, window, shaders, camera, lighting, empty room, desk lamp shadows, Saturn picture
+- Aidana: bed with headboard, bookshelf, rug, plant, Texture class, UVs, textures
+- Aruzhan: desk, chair, desk lamp, scene graph (lamp arm, cat), laptop screen, procedural sky
+- Baxa: day/night cycle, time controls, on-screen help, sun shadows, fairy lights, glowing lamp shade
 
 ## Libraries
 
@@ -22,8 +22,9 @@ GLFW and GLM are downloaded by CMake (FetchContent); GLAD, stb_easy_font and stb
 ## References
 
 - Joey de Vries, *LearnOpenGL*: "Basic Lighting", "Advanced Lighting" (Blinn-Phong)
-  and "Shadow Mapping" chapters, https://learnopengl.com (CC BY-NC 4.0).
-  Used as a reference for the lighting model, shadow mapping, PCF and shadow bias.
+  "Shadow Mapping", "Point Shadows" and "Multiple Lights" chapters, https://learnopengl.com
+  (CC BY-NC 4.0). Used as a reference for the lighting model, shadow mapping, PCF, shadow bias,
+  cube-map shadows and adding several point lights in one shader.
   No code was copied as-is.
 - Course materials of Computer Graphics Fundamentals, Astana IT University.
 
