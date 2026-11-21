@@ -204,7 +204,7 @@ table row to the console.
 | Apple M1 (MacBook Air, Baxa) | 2880x1800 | 337 | 142 | 2.96 ms |
 
 The software-rendering row is the worst case (the CPU does all the GPU work).
-Rows for the team's laptops are added after running the benchmark on them.
+Measured on Apple M1 (MacBook Air) with vsync off; the course target is 60+ FPS at 1280x720.
 
 ## Screenshots
 
