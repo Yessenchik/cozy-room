@@ -9,6 +9,7 @@
 #include "Benchmark.h"
 #include "Camera.h"
 #include "DayNight.h"
+#include "DustParticles.h"
 #include "FairyLights.h"
 #include "Hud.h"
 #include "Mesh.h"
@@ -31,7 +32,7 @@ DayNight dayNight(8.0f);
 TimeControls timeControls(dayNight);
 Benchmark benchmark;
 bool vsyncOn = true;
-FairyLights* fairyLights = nullptr;   // created after the OpenGL context
+FairyLights* fairyLights = nullptr;
 
 const float LAMP_ON_HOUR = 19.0f;
 const float LAMP_OFF_HOUR = 7.0f;
@@ -236,6 +237,12 @@ int main() {
 
     Room* room = new Room();
 
+    DustParticles* dustParticles = new DustParticles(
+        std::string(PROJECT_DIR) + "shaders/dust.vert",
+        std::string(PROJECT_DIR) + "shaders/dust.frag",
+        1400
+    );
+
     WindowSky windowSky;
 
     Shader depthShader(
@@ -295,8 +302,6 @@ int main() {
         room->setTimeOfDay(dayNight.getHour());
         room->update(deltaTime);
 
-        // the desk lamp and the fairy lights switch on in the evening
-        // and off in the morning; L and F still work at any time
         if (timeControls.takeJump() || benchmarkJustEnded) {
             lampOn = lampShouldBeOn(dayNight.getHour());
             fairyLights->setOn(lampOn);
@@ -313,6 +318,7 @@ int main() {
                 fairyLights->setOn(false);
             }
         }
+
         fairyLights->update(deltaTime);
 
         const Lighting light = dayNight.getLighting();
@@ -361,8 +367,13 @@ int main() {
             camera.getProjectionMatrix(aspect);
         const glm::vec3 cameraPosition = camera.getPosition();
 
-        windowSky.drawBackground(view, projection, cameraPosition,
-                                 dayNight.getHour(), (float)glfwGetTime());
+        windowSky.drawBackground(
+            view,
+            projection,
+            cameraPosition,
+            dayNight.getHour(),
+            static_cast<float>(glfwGetTime())
+        );
 
         shader.use();
         shader.setMat4("uView", view);
@@ -398,19 +409,56 @@ int main() {
         room->draw(shader);
         fairyLights->draw(shader);
 
-        windowSky.drawPane(view, projection, cameraPosition,
-                           dayNight.getHour(), (float)glfwGetTime());
+        const float hour = dayNight.getHour();
+
+        const float morningIntensity =
+            glm::clamp((hour - 6.5f) / 1.5f, 0.0f, 1.0f);
+
+        const float eveningIntensity =
+            glm::clamp((19.0f - hour) / 1.5f, 0.0f, 1.0f);
+
+        const float sunlightIntensity =
+            morningIntensity * eveningIntensity;
+
+        if (sunlightIntensity > 0.01f) {
+            const glm::vec3 windowOrigin(0.25f, 2.08f, -2.92f);
+
+            dustParticles->draw(
+                windowOrigin,
+                view,
+                projection,
+                static_cast<float>(fbHeight),
+                static_cast<float>(glfwGetTime()),
+                sunlightIntensity
+            );
+        }
+
+        windowSky.drawPane(
+            view,
+            projection,
+            cameraPosition,
+            dayNight.getHour(),
+            static_cast<float>(glfwGetTime())
+        );
 
         int winWidth;
         int winHeight;
         glfwGetWindowSize(window, &winWidth, &winHeight);
 
         hud.begin(winWidth, winHeight);
-        timeControls.draw(hud, winWidth, winHeight, fps, lampOn, fairyLights->isOn());
+        timeControls.draw(
+            hud,
+            winWidth,
+            winHeight,
+            fps,
+            lampOn,
+            fairyLights->isOn()
+        );
 
         const std::string benchText = benchmark.statusText();
         if (!benchText.empty()) {
-            const float width = Hud::textWidth(benchText, 2.0f) + 24.0f;
+            const float width =
+                Hud::textWidth(benchText, 2.0f) + 24.0f;
             const float x = (winWidth - width) / 2.0f;
 
             hud.rect(
@@ -457,8 +505,10 @@ int main() {
     }
 
     delete fairyLights;
+    delete dustParticles;
     delete occluderCube;
     delete room;
+
     glfwTerminate();
     return 0;
 }
