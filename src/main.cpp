@@ -17,6 +17,7 @@
 #include "Shader.h"
 #include "ShadowMap.h"
 #include "TimeControls.h"
+#include "WindowSky.h"
 
 const int WINDOW_WIDTH = 1280;
 const int WINDOW_HEIGHT = 720;
@@ -235,26 +236,7 @@ int main() {
 
     Room* room = new Room();
 
-    Shader windowSkyShader(
-        std::string(PROJECT_DIR) + "shaders/window_sky.vert",
-        std::string(PROJECT_DIR) + "shaders/window_sky.frag"
-    );
-    Mesh* windowSkyCube = Mesh::createCube();
-
-    Shader windowPlaneShader(
-        std::string(PROJECT_DIR) + "shaders/window_plane.vert",
-        std::string(PROJECT_DIR) + "shaders/window_sky.frag"
-    );
-    Mesh* windowPlaneCube = Mesh::createCube();
-
-    glm::mat4 windowPlaneModel = glm::translate(
-        glm::mat4(1.0f),
-        glm::vec3(0.5f, 1.64f, -3.115f)
-    );
-    windowPlaneModel = glm::scale(
-        windowPlaneModel,
-        glm::vec3(1.91f, 1.18f, 0.01f)
-    );
+    WindowSky windowSky;
 
     Shader depthShader(
         std::string(PROJECT_DIR) + "shaders/shadow_depth.vert",
@@ -379,55 +361,8 @@ int main() {
             camera.getProjectionMatrix(aspect);
         const glm::vec3 cameraPosition = camera.getPosition();
 
-        const glm::vec3 sunTarget(
-            0.5f + (0.76f - 0.5f) * 1.91f,
-            1.64f + (0.70f - 0.5f) * 1.18f,
-            -3.115f
-        );
-
-        const glm::vec3 moonTarget(
-            0.5f + (0.78f - 0.5f) * 1.91f,
-            1.64f + (0.72f - 0.5f) * 1.18f,
-            -3.115f
-        );
-
-        const glm::vec3 sunDirection =
-            glm::normalize(sunTarget - cameraPosition);
-        const glm::vec3 moonDirection =
-            glm::normalize(moonTarget - cameraPosition);
-
-        const GLboolean cullingWasEnabled =
-            glIsEnabled(GL_CULL_FACE);
-        GLint previousCullMode = GL_BACK;
-        glGetIntegerv(GL_CULL_FACE_MODE, &previousCullMode);
-
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_FRONT);
-        glDepthFunc(GL_LEQUAL);
-        glDepthMask(GL_FALSE);
-
-        windowSkyShader.use();
-        windowSkyShader.setMat4(
-            "uView",
-            glm::mat4(glm::mat3(view))
-        );
-        windowSkyShader.setMat4("uProjection", projection);
-        windowSkyShader.setFloat("uHour", dayNight.getHour());
-        windowSkyShader.setFloat(
-            "uTime",
-            static_cast<float>(glfwGetTime())
-        );
-        windowSkyShader.setVec3("uSunDirection", sunDirection);
-        windowSkyShader.setVec3("uMoonDirection", moonDirection);
-        windowSkyCube->draw();
-
-        glDepthMask(GL_TRUE);
-        glDepthFunc(GL_LESS);
-        glCullFace(previousCullMode);
-
-        if (!cullingWasEnabled) {
-            glDisable(GL_CULL_FACE);
-        }
+        windowSky.drawBackground(view, projection, cameraPosition,
+                                 dayNight.getHour(), (float)glfwGetTime());
 
         shader.use();
         shader.setMat4("uView", view);
@@ -463,19 +398,8 @@ int main() {
         room->draw(shader);
         fairyLights->draw(shader);
 
-        windowPlaneShader.use();
-        windowPlaneShader.setMat4("uModel", windowPlaneModel);
-        windowPlaneShader.setMat4("uView", view);
-        windowPlaneShader.setMat4("uProjection", projection);
-        windowPlaneShader.setVec3("uCameraPos", cameraPosition);
-        windowPlaneShader.setVec3("uSunDirection", sunDirection);
-        windowPlaneShader.setVec3("uMoonDirection", moonDirection);
-        windowPlaneShader.setFloat("uHour", dayNight.getHour());
-        windowPlaneShader.setFloat(
-            "uTime",
-            static_cast<float>(glfwGetTime())
-        );
-        windowPlaneCube->draw();
+        windowSky.drawPane(view, projection, cameraPosition,
+                           dayNight.getHour(), (float)glfwGetTime());
 
         int winWidth;
         int winHeight;
@@ -533,8 +457,6 @@ int main() {
     }
 
     delete fairyLights;
-    delete windowPlaneCube;
-    delete windowSkyCube;
     delete occluderCube;
     delete room;
     glfwTerminate();
