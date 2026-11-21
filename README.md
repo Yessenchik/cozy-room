@@ -86,10 +86,10 @@ Stretch goals:
 - [x] Warm/cold colour change by time of day (sky, sun and ambient colours)
 - [x] Shadow mapping for the sun, soft edges with 3x3 PCF
 - [x] Shadows from the desk lamp (cube-map shadow for a point light), e.g. under the desk
-- [ ] Dust particles in the light beam
+- [x] Dust particles drifting in the sunlight beam from the window (1,400 soft point sprites)
 
 Wow moment: press **T** for a time-lapse from morning to night;
-the sunlight patch crawls over the floor, and at 19:00 the desk lamp shade starts to glow
+the sunlight patch moves across the floor, and dust motes shimmer in its beam; at 19:00 the desk lamp shade starts to glow
 and the fairy lights come on one after another along the string.
 
 Technical:
@@ -156,6 +156,13 @@ twinkles slightly. When all bulbs are dark the shader loop is skipped.
 lighting, so a surface can glow on its own: the bulbs, the lamp shade while the lamp is on, and
 the laptop screen. Everything else sends black.
 
+**Dust in the sunlight** (`DustParticles.cpp`, `dust.vert`, `dust.frag`). The renderer creates
+1,400 point sprites in a narrow volume in front of the window. The vertex shader gives each mote
+a slow, independent drift and scales its size with camera distance; the fragment shader fades the
+edges into a soft warm speck. Alpha blending makes the particles translucent, and their brightness
+follows the daylight, so they fade out when the sun is below the horizon. They are drawn only in
+the room's sunlit window beam and do not cast shadows.
+
 **HUD** (`Hud.cpp`, `TimeControls.cpp`). A second, flat shader draws coloured
 rectangles and text on top of the scene with alpha blending. Letters come from
 stb_easy_font, which builds every character from small quads, so no font texture is needed.
@@ -163,34 +170,49 @@ The time slider is painted with the sky colour of every hour.
 
 ## Project structure
 
+The project is a C++17/CMake application. All application code is under `src/`; CMake adds each
+`.cpp` file automatically, while the renderer loads GLSL programs and textures from their own
+folders at runtime.
+
 ```
+CMakeLists.txt
+CREDITS.md
 src/
-  main.cpp           window, input, render loop
-  Camera.*           orbit camera
-  Shader.*           loads and compiles GLSL programs
-  Mesh.*             VAO/VBO/EBO, cube mesh with UVs
-  Texture.*          stb_image loading, mipmaps
-  Room.*             room, furniture, scene graph (lamp)
-  RoomCat.cpp        the cat (part of Room)
-  DayNight.*         time of day -> sun/moon direction and colours
-  ShadowMap.*        depth framebuffer for the sun
-  PointShadowMap.*   depth cube map for the desk lamp
-  FairyLights.*      fairy lights: wire, bulbs, 12 point lights
-  WindowSky.*        procedural sky behind the window
-  Hud.*              2D overlay: rectangles and text
-  TimeControls.*     time keys, time slider, help panel
-  Benchmark.*        FPS benchmark (key B)
+  main.cpp                 window, input, render loop and feature integration
+  Camera.h/.cpp            orbit camera
+  Shader.h/.cpp            GLSL compile, link and uniforms
+  Mesh.h/.cpp              VAO/VBO/EBO and cube geometry
+  Texture.h/.cpp           image loading, mipmaps and texture binding
+  Room.h/.cpp              room, furniture, materials and lamp scene graph
+  RoomCat.cpp              cat geometry and time-based activities
+  DayNight.h/.cpp          clock, sun/moon direction and lighting keyframes
+  ShadowMap.h/.cpp         directional shadow map for the sun
+  PointShadowMap.h/.cpp    depth cube map for the desk lamp
+  FairyLights.h/.cpp        hanging wire, bulbs and point-light uniforms
+  DustParticles.h/.cpp     translucent motes in the sunlight beam
+  WindowSky.h/.cpp         procedural sky and window pane
+  Hud.h/.cpp               2D HUD primitives and text
+  TimeControls.h/.cpp      keyboard controls and draggable time bar
+  Benchmark.h/.cpp         timed FPS benchmark
 shaders/
-  basic.vert/.frag   Blinn-Phong, textures, sun + lamp shadows, fairy lights, glow
-  shadow_depth.*     depth pass for the sun
-  point_shadow.*     depth pass for the lamp (cube map)
-  window_sky.*, window_plane.vert   sky through the window
-  hud.vert/.frag     2D overlay
-textures/            our own textures, made by tools/make_textures.py
+  basic.vert/.frag         materials, Blinn-Phong lighting and shadows
+  shadow_depth.vert/.frag  sun shadow depth pass
+  point_shadow.vert/.frag lamp shadow cube-map pass
+  dust.vert/.frag          animated point sprites for sunlight dust
+  window_sky.vert/.frag    procedural sky colours and sun, moon and stars
+  window_plane.vert        sky visible through the window opening
+  hud.vert/.frag           HUD rendering
+textures/                 generated wallpaper, wood, rug and Saturn image
 external/
-  glad/              OpenGL loader
-  stb/               stb_easy_font, stb_image
+  glad/                     OpenGL function loader
+  stb/                      stb_image and stb_easy_font headers
+tools/
+  make_textures.py          generates the project's texture images
+docs/screenshots/          project and feature screenshots
 ```
+
+GLFW and GLM are fetched by CMake on the first configure; GLAD and stb headers are included in
+`external/`. The texture images are generated by `tools/make_textures.py`.
 
 ## Performance
 
@@ -217,17 +239,24 @@ Earlier progress screenshots are in `docs/screenshots/`.
 
 ## AI Use
 
-We used Claude (Anthropic) as an assistant in this project.
+We used Claude (Anthropic) as an assistant for planning, coding questions, implementation support
+and report drafting. We reviewed and adapted its suggestions, integrated the code and tested our
+contributions. Each of us can explain the work we contributed.
 
-- **Planning (whole team):** dividing the work between members, structuring the OpenGL project,
-  breaking the Final Project requirements into GitHub issues, reviewing the README.
-- **Code (Baxa):** Claude wrote the first version of the day/night cycle, time controls and HUD,
-  sun shadow mapping, the FPS benchmark, the fairy lights and the glowing lamp shade, and moved the
-  window sky and the cat into their own files. Baxa built and ran every change on macOS, checked it
-  against the requirements and asked for changes (room brightness after the shadows, size of the
-  help panel, brightness of the fairy lights); he can explain every part of this code.
-
-Every member adds a line about their own use of AI; the same note is in the report.
+- **Team planning:** Claude helped the team divide responsibilities, structure the OpenGL project,
+  turn the final-project requirements into GitHub issues and review the README.
+- **Yessen:** Claude assisted with explanations and parts of the CMake setup, window, `Shader` and
+  `Mesh` classes, camera, lighting and desk-lamp cube-map shadows. Yessen integrated, adapted,
+  built and tested this work.
+- **Aidana:** Claude assisted with explanations and parts of the `Texture` class, cube UVs and the
+  `tools/make_textures.py` script. Aidana placed and sized the furniture, tested and adjusted its
+  textures, and can explain the implementation.
+- **Aruzhan:** Claude was used occasionally to clarify coding questions. Aruzhan wrote and
+  integrated the scene code, tested it and adjusted object appearance and positions.
+- **Baxa:** Claude was used occasionally for explanations and help with coding tasks. Baxa reviewed,
+  adapted and tested the features on macOS, then adjusted room brightness, help-panel size and fairy
+  light brightness. Claude also helped draft and check report sections on the day/night cycle,
+  shadows, HUD and fairy lights; the report sources were checked by hand.
 
 ## Credits
 
