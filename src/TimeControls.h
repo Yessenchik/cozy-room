@@ -30,7 +30,7 @@ public:
     // so main can put the lamp into the right state for the new hour
     bool takeJump();
 
-    void draw(Hud& hud, int windowWidth, int windowHeight, float fps, bool lampOn) const;
+    void draw(Hud& hud, int windowWidth, int windowHeight, float fps, bool lampOn, bool fairyOn) const;
 
 private:
     struct Box { float x, y, w, h; };

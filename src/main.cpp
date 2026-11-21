@@ -9,6 +9,7 @@
 #include "Benchmark.h"
 #include "Camera.h"
 #include "DayNight.h"
+#include "FairyLights.h"
 #include "Hud.h"
 #include "Mesh.h"
 #include "PointShadowMap.h"
@@ -29,6 +30,7 @@ DayNight dayNight(8.0f);
 TimeControls timeControls(dayNight);
 Benchmark benchmark;
 bool vsyncOn = true;
+FairyLights* fairyLights = nullptr;   // created after the OpenGL context
 
 const float LAMP_ON_HOUR = 19.0f;
 const float LAMP_OFF_HOUR = 7.0f;
@@ -108,6 +110,10 @@ void onKey(GLFWwindow* window, int key, int, int action, int) {
 
     if (action != GLFW_PRESS) {
         return;
+    }
+
+    if (key == GLFW_KEY_F && fairyLights) {
+        fairyLights->toggle();
     }
 
     if (key == GLFW_KEY_B) {
@@ -265,6 +271,8 @@ int main() {
     PointShadowMap lampShadowMap(1024);
     const int LAMP_SHADOW_TEXTURE_UNIT = 2;
 
+    fairyLights = new FairyLights();
+
     Hud hud(
         std::string(PROJECT_DIR) + "shaders/hud.vert",
         std::string(PROJECT_DIR) + "shaders/hud.frag"
@@ -273,6 +281,7 @@ int main() {
     glEnable(GL_DEPTH_TEST);
 
     lampOn = lampShouldBeOn(dayNight.getHour());
+    fairyLights->setOn(lampOn);
     room->setTimeOfDay(dayNight.getHour());
 
     double lastFrameTime = glfwGetTime();
@@ -304,19 +313,25 @@ int main() {
         room->setTimeOfDay(dayNight.getHour());
         room->update(deltaTime);
 
+        // the desk lamp and the fairy lights switch on in the evening
+        // and off in the morning; L and F still work at any time
         if (timeControls.takeJump() || benchmarkJustEnded) {
             lampOn = lampShouldBeOn(dayNight.getHour());
+            fairyLights->setOn(lampOn);
         }
         else {
             if (DayNight::passed(
                 prevHour, dayNight.getHour(), LAMP_ON_HOUR)) {
                 lampOn = true;
+                fairyLights->setOn(true);
             }
             if (DayNight::passed(
                 prevHour, dayNight.getHour(), LAMP_OFF_HOUR)) {
                 lampOn = false;
+                fairyLights->setOn(false);
             }
         }
+        fairyLights->update(deltaTime);
 
         const Lighting light = dayNight.getLighting();
 
@@ -443,7 +458,9 @@ int main() {
             : glm::vec3(0.0f)
         );
 
+        fairyLights->applyLights(shader);
         room->draw(shader);
+        fairyLights->draw(shader);
 
         windowPlaneShader.use();
         windowPlaneShader.setMat4("uModel", windowPlaneModel);
@@ -464,7 +481,7 @@ int main() {
         glfwGetWindowSize(window, &winWidth, &winHeight);
 
         hud.begin(winWidth, winHeight);
-        timeControls.draw(hud, winWidth, winHeight, fps, lampOn);
+        timeControls.draw(hud, winWidth, winHeight, fps, lampOn, fairyLights->isOn());
 
         const std::string benchText = benchmark.statusText();
         if (!benchText.empty()) {
@@ -514,6 +531,7 @@ int main() {
         }
     }
 
+    delete fairyLights;
     delete windowPlaneCube;
     delete windowSkyCube;
     delete occluderCube;

@@ -19,6 +19,14 @@ uniform bool uUseTexture;             // false for plain-coloured furniture
 uniform samplerCube uLampShadowMap;   // distance to the closest surface around the lamp, unit 2
 uniform float uLampFarPlane;
 
+// fairy lights: small warm point lights over the bed (no shadows, short range)
+#define MAX_FAIRY 12
+uniform int uFairyCount;
+uniform vec3 uFairyPos[MAX_FAIRY];
+uniform vec3 uFairyColor[MAX_FAIRY];   // colour * brightness, black when off
+
+uniform vec3 uEmissive;   // light the surface gives off itself (bulbs); 0 for everything else
+
 // 1.0 = fully lit by the sun, 0.0 = fully in shadow.
 // PCF: 3x3 samples around the pixel are averaged, so the shadow edge is soft.
 float sunVisibility(vec3 N, vec3 L) {
@@ -96,6 +104,18 @@ void main() {
         : 0.0;
     vec3 lampSpecular = 0.2 * lampSpec * uLampColor * attenuation;
 
+    // every bulb adds a diffuse term with a fast fall-off, so it only lights
+    // the walls and the bed close to it
+    vec3 fairy = vec3(0.0);
+    for (int i = 0; i < uFairyCount; ++i) {
+        vec3 toBulb = uFairyPos[i] - vWorldPos;
+        float d = length(toBulb);
+        float fairyDiff = max(dot(N, toBulb / d), 0.0);
+        float fairyAtt = 1.0 / (1.0 + 1.0 * d + 2.5 * d * d);
+        fairy += fairyDiff * fairyAtt * albedo * uFairyColor[i];
+    }
+
     FragColor = vec4(ambient + diffuse + specular
-                     + lampDiffuse + lampSpecular, 1.0);
+                     + lampDiffuse + lampSpecular
+                     + fairy + uEmissive, 1.0);
 }
